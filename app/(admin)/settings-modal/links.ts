@@ -1,7 +1,7 @@
 // 설정 모달은 지금 페이지 주소에 ?settings=<탭>(&program=<사이트 id>)를 붙여 연다.
 // 그래서 어느 화면에서든 링크 하나로 특정 탭을 열 수 있다.
 
-export const SETTINGS_TABS = ["general", "account", "sdk", "repro", "site", "members"] as const;
+export const SETTINGS_TABS = ["general", "account", "sdk", "repro", "site", "new-site", "members"] as const;
 export type SettingsTab = (typeof SETTINGS_TABS)[number];
 
 export function isSettingsTab(value: string | null): value is SettingsTab {

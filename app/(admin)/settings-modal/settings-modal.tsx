@@ -1,12 +1,16 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { api, type Schemas } from "@/lib/api";
 import { AccountView } from "../account/account-view";
 import { OrgView } from "../org/org-view";
 import { GeneralTab } from "./general-tab";
 import { isSettingsTab, settingsHref, type SettingsTab } from "./links";
-import { SiteTabs } from "./site-tabs";
+import { NewSiteTab, SiteTabs } from "./site-tabs";
+
+type ProgramList = Schemas["ProgramList"];
 
 const NAV: { group: string; items: { tab: SettingsTab; label: string }[] }[] = [
   {
@@ -19,6 +23,7 @@ const NAV: { group: string; items: { tab: SettingsTab; label: string }[] }[] = [
   {
     group: "사이트",
     items: [
+      { tab: "new-site", label: "사이트 추가" },
       { tab: "sdk", label: "SDK와 설치" },
       { tab: "repro", label: "재현 환경" },
       { tab: "site", label: "사이트 정보" },
@@ -35,19 +40,31 @@ export function SettingsModal() {
   return <SettingsDialog tab={value} />;
 }
 
+/** 사이트가 하나 있어야 내용이 생기는 탭. 사이트가 없으면 잠근다. */
+const NEEDS_SITE: readonly SettingsTab[] = ["sdk", "repro", "site"];
+
 function SettingsDialog({ tab }: { tab: SettingsTab }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const dialog = useRef<HTMLDialogElement>(null);
+  const programs = useQuery({ queryKey: ["programs"], queryFn: () => api<ProgramList>("/programs") });
+  const noSite = programs.data?.items.length === 0;
+  const locked = (item: SettingsTab) => noSite && NEEDS_SITE.includes(item);
 
   useEffect(() => {
     dialog.current?.showModal();
   }, []);
 
-  function go(next: SettingsTab) {
-    router.replace(settingsHref(pathname, searchParams, next), { scroll: false });
+  function go(next: SettingsTab, programId?: string) {
+    router.replace(settingsHref(pathname, searchParams, next, programId), { scroll: false });
   }
+
+  // 잠긴 탭으로 들어온 링크(?settings=sdk 등)는 사이트 추가로 보낸다.
+  const redirect = locked(tab);
+  useEffect(() => {
+    if (redirect) router.replace(settingsHref(pathname, searchParams, "new-site"), { scroll: false });
+  }, [redirect, router, pathname, searchParams]);
 
   function close() {
     const params = new URLSearchParams(searchParams.toString());
@@ -95,17 +112,30 @@ function SettingsDialog({ tab }: { tab: SettingsTab }) {
                 <span className="hidden px-3 pb-1 text-xs font-medium text-faint sm:block">{group}</span>
                 {items.map((item) => {
                   const active = item.tab === tab;
+                  const off = locked(item.tab);
                   return (
                     <button
                       key={item.tab}
                       type="button"
                       aria-current={active ? "page" : undefined}
+                      disabled={off}
+                      title={off ? "사이트를 먼저 추가하세요" : undefined}
                       onClick={() => go(item.tab)}
-                      className={`rounded-lg px-3 py-2 text-left text-sm whitespace-nowrap ${
-                        active ? "bg-chip font-semibold" : "font-medium text-subtle hover:text-foreground"
+                      className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm whitespace-nowrap ${
+                        active
+                          ? "bg-chip font-semibold"
+                          : off
+                            ? "font-medium text-faint"
+                            : "font-medium text-subtle hover:text-foreground"
                       }`}
                     >
                       {item.label}
+                      {off && (
+                        <svg width="14" height="14" viewBox="0 0 24 24" aria-label="잠김" className="shrink-0">
+                          <rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
+                          <path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" strokeWidth="2" />
+                        </svg>
+                      )}
                     </button>
                   );
                 })}
@@ -117,7 +147,10 @@ function SettingsDialog({ tab }: { tab: SettingsTab }) {
             <div className="flex flex-col gap-8">
               {tab === "general" && <GeneralTab />}
               {tab === "account" && <AccountView />}
-              {(tab === "sdk" || tab === "repro" || tab === "site") && <SiteTabs tab={tab} />}
+              {(tab === "sdk" || tab === "repro" || tab === "site") && !redirect && (
+                <SiteTabs tab={tab} onAdd={() => go("new-site")} />
+              )}
+              {tab === "new-site" && <NewSiteTab noSite={noSite} onCreated={(programId) => go("sdk", programId)} />}
               {tab === "members" && <OrgView />}
             </div>
           </div>
