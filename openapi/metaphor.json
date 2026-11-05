@@ -141,6 +141,49 @@
         }
       }
     },
+    "/api/v1/validation-jobs/{job_id}/live-ticket": {
+      "post": {
+        "tags": [
+          "validation-jobs"
+        ],
+        "summary": "Issue Live Ticket",
+        "description": "One-time (30 s) ticket for `WS .../live`, for any active member of the job's org.",
+        "operationId": "issue_live_ticket_api_v1_validation_jobs__job_id__live_ticket_post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveTicketOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/signup": {
       "post": {
         "tags": [
@@ -5769,6 +5812,43 @@
         ],
         "title": "JobResult"
       },
+      "LiveTicketOut": {
+        "properties": {
+          "websocket_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Websocket Url"
+          },
+          "ticket": {
+            "type": "string",
+            "title": "Ticket"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "subprotocol": {
+            "type": "string",
+            "title": "Subprotocol"
+          }
+        },
+        "type": "object",
+        "required": [
+          "websocket_url",
+          "ticket",
+          "expires_at",
+          "subprotocol"
+        ],
+        "title": "LiveTicketOut",
+        "description": "One-time live connection ticket. Never log or put `ticket` in a URL."
+      },
       "LoginRequest": {
         "properties": {
           "email": {
@@ -7696,6 +7776,19 @@
             ],
             "title": "Success Selector"
           },
+          "submit_selector": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submit Selector"
+          },
           "unauthenticated_paths": {
             "items": {
               "type": "string",
@@ -7781,6 +7874,17 @@
               }
             ],
             "title": "Success Selector"
+          },
+          "submit_selector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submit Selector"
           },
           "unauthenticated_paths": {
             "items": {
