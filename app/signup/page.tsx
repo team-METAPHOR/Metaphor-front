@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ApiError, api, type Schemas } from "@/lib/api";
 import { homePath, meQueryKey, useMe } from "@/lib/auth";
+import { AuthError, AuthField, AuthFooter, AuthHeading, AuthShell, authInput, authLink, authSubmit } from "@/components/auth-ui";
 
 type Me = Schemas["MeResponse"];
 
@@ -20,9 +21,6 @@ function signupErrorMessage(error: unknown): string {
   }
   return "가입하지 못했어요. 잠시 후 다시 시도하세요.";
 }
-
-const inputClass =
-  "mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-primary";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -59,100 +57,83 @@ export default function SignupPage() {
   });
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
+    <AuthShell>
+      <AuthHeading title="회원가입">가입한 뒤 조직을 만들거나 초대 코드로 참여해요.</AuthHeading>
+
       <form
         onSubmit={(event) => {
           event.preventDefault();
           if (!mismatch) signup.mutate();
         }}
-        className="w-full max-w-sm rounded-2xl border border-border bg-surface p-8 shadow-sm"
+        className="flex flex-col gap-6"
       >
-        <h1 className="text-2xl font-bold">회원가입</h1>
-        <p className="mt-1 text-sm text-muted">Metaphor 버그 신고 관리</p>
+        <div className="flex flex-col gap-4">
+          <AuthField id="email" label="이메일">
+            <input
+              id="email"
+              type="email"
+              autoComplete="username"
+              required
+              maxLength={320}
+              placeholder="you@company.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className={authInput}
+            />
+          </AuthField>
+          <AuthField id="display-name" label="이름" optional>
+            <input
+              id="display-name"
+              type="text"
+              autoComplete="name"
+              maxLength={100}
+              placeholder="팀에서 보일 이름"
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+              className={authInput}
+            />
+          </AuthField>
+          <AuthField id="password" label="비밀번호" help={`${MIN_PASSWORD}자 이상`}>
+            <input
+              id="password"
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={MIN_PASSWORD}
+              maxLength={256}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              aria-describedby="password-help"
+              className={authInput}
+            />
+          </AuthField>
+          <AuthField id="password-confirm" label="비밀번호 확인" error={mismatch && "비밀번호가 서로 달라요."}>
+            <input
+              id="password-confirm"
+              type="password"
+              autoComplete="new-password"
+              required
+              maxLength={256}
+              value={confirm}
+              onChange={(event) => setConfirm(event.target.value)}
+              aria-invalid={mismatch}
+              className={authInput}
+            />
+          </AuthField>
+          {signup.isError && <AuthError>{signupErrorMessage(signup.error)}</AuthError>}
+        </div>
 
-        <label className="mt-8 block text-sm font-medium" htmlFor="email">
-          이메일
-        </label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="username"
-          required
-          maxLength={320}
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          className={inputClass}
-        />
-
-        <label className="mt-4 block text-sm font-medium" htmlFor="display-name">
-          이름 <span className="font-normal text-muted">(선택)</span>
-        </label>
-        <input
-          id="display-name"
-          type="text"
-          autoComplete="name"
-          maxLength={100}
-          value={displayName}
-          onChange={(event) => setDisplayName(event.target.value)}
-          className={inputClass}
-        />
-
-        <label className="mt-4 block text-sm font-medium" htmlFor="password">
-          비밀번호
-        </label>
-        <input
-          id="password"
-          type="password"
-          autoComplete="new-password"
-          required
-          minLength={MIN_PASSWORD}
-          maxLength={256}
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          aria-describedby="password-help"
-          className={inputClass}
-        />
-        <p id="password-help" className="mt-1 text-xs text-muted">
-          {MIN_PASSWORD}자 이상
-        </p>
-
-        <label className="mt-4 block text-sm font-medium" htmlFor="password-confirm">
-          비밀번호 확인
-        </label>
-        <input
-          id="password-confirm"
-          type="password"
-          autoComplete="new-password"
-          required
-          maxLength={256}
-          value={confirm}
-          onChange={(event) => setConfirm(event.target.value)}
-          aria-invalid={mismatch}
-          className={`${inputClass} aria-invalid:border-red-400`}
-        />
-        {mismatch && <p className="mt-1 text-xs text-red-600">비밀번호가 서로 달라요.</p>}
-
-        {signup.isError && (
-          <p role="alert" className="mt-4 text-sm text-red-600">
-            {signupErrorMessage(signup.error)}
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={signup.isPending || mismatch}
-          className="mt-6 w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
-        >
+        <button type="submit" disabled={signup.isPending || mismatch} className={authSubmit}>
           {signup.isPending ? "가입 중…" : "가입하기"}
         </button>
-
-        <p className="mt-4 text-center text-sm text-muted">
-          이미 계정이 있나요?{" "}
-          <Link href="/login" className="font-medium text-primary hover:underline">
-            로그인
-          </Link>
-        </p>
       </form>
-    </main>
+
+      <AuthFooter>
+        이미 계정이 있나요?{" "}
+        <Link href="/login" className={authLink}>
+          로그인
+        </Link>
+      </AuthFooter>
+    </AuthShell>
   );
 }

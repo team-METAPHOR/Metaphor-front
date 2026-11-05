@@ -51,7 +51,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   }, [unauthenticated, router]);
 
   if (isPending || unauthenticated) return <p className="text-sm text-muted">불러오는 중…</p>;
-  if (error) return <p className="text-sm text-red-600">사용자 정보를 불러오지 못했어요. ({error.message})</p>;
+  if (error) return <p className="text-sm text-danger">사용자 정보를 불러오지 못했어요. ({error.message})</p>;
 
   const membership = user.memberships[0];
   if (!membership) {
