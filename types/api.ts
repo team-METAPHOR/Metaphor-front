@@ -58,6 +58,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/validation-jobs/{job_id}/live-ticket": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Issue Live Ticket
+         * @description One-time (30 s) ticket for `WS .../live`, for any active member of the job's org.
+         */
+        post: operations["issue_live_ticket_api_v1_validation_jobs__job_id__live_ticket_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/signup": {
         parameters: {
             query?: never;
@@ -1692,6 +1712,23 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /**
+         * LiveTicketOut
+         * @description One-time live connection ticket. Never log or put `ticket` in a URL.
+         */
+        LiveTicketOut: {
+            /** Websocket Url */
+            websocket_url: string | null;
+            /** Ticket */
+            ticket: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Subprotocol */
+            subprotocol: string;
+        };
         /** LoginRequest */
         LoginRequest: {
             /** Email */
@@ -2768,6 +2805,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WidgetReceipt"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    issue_live_ticket_api_v1_validation_jobs__job_id__live_ticket_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveTicketOut"];
                 };
             };
             /** @description Validation Error */
