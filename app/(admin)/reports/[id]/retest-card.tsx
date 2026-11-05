@@ -44,13 +44,17 @@ export function RetestCard({
   const program = useQuery({
     queryKey: ["programs", programId],
     queryFn: () => api<Schemas["ProgramResponse"]>(`/programs/${encodeURIComponent(programId)}`),
-    enabled: choosing,
+    // 미리 불러와 둔다: 승인된 테스트 버전이 없으면 고르지 않고 바로 시작한다.
+    enabled: canReview,
   });
   const start = useMutation({
-    mutationFn: (appVersion: string) =>
+    // app_version을 빼면 서버가 현재 사이트 범위의 버전 라벨을 쓴다.
+    mutationFn: (appVersion?: string) =>
       api<Schemas["JobQueued"]>(`/reports/${encodeURIComponent(reportId)}/validation-jobs`, {
         method: "POST",
-        body: { mode: "retest", baseline_job_id: baseline.id, app_version: appVersion },
+        body: appVersion
+          ? { mode: "retest", baseline_job_id: baseline.id, app_version: appVersion }
+          : { mode: "retest", baseline_job_id: baseline.id },
         idempotent: true,
       }),
     onSuccess: () => {
@@ -77,11 +81,14 @@ export function RetestCard({
           <button
             type="button"
             className={button.primary}
-            disabled={!comparable || running}
+            disabled={!comparable || running || start.isPending}
             title={comparable ? undefined : "재현 여부가 확정된 실행이 있어야 수정 확인을 할 수 있어요."}
-            onClick={() => setChoosing(true)}
+            onClick={() => {
+              if (program.isSuccess && versions.length === 0) start.mutate(undefined);
+              else setChoosing(true);
+            }}
           >
-            {running ? "확인 중…" : "수정 확인 실행"}
+            {running ? "확인 중…" : start.isPending ? "요청 중…" : "수정 확인 실행"}
           </button>
         )
       }
@@ -93,13 +100,23 @@ export function RetestCard({
           ) : program.isError ? (
             <span className="text-danger">사이트 정보를 불러오지 못했어요.</span>
           ) : versions.length === 0 ? (
-            <span className="text-subtle">
-              승인된 테스트 버전이 없어요.{" "}
-              <Link href={settingsLink("site", programId)} className="font-medium text-primary-ink underline">
-                사이트 설정
-              </Link>
-              에서 추가하세요.
-            </span>
+            <>
+              <span className="text-subtle">
+                현재 사이트 설정 그대로 다시 확인해요. 테스트 버전은{" "}
+                <Link href={settingsLink("site", programId)} className="font-medium text-primary-ink underline">
+                  사이트 설정
+                </Link>
+                에서 추가할 수 있어요.
+              </span>
+              <button
+                type="button"
+                className={button.primary}
+                disabled={start.isPending}
+                onClick={() => start.mutate(undefined)}
+              >
+                {start.isPending ? "요청 중…" : "시작"}
+              </button>
+            </>
           ) : (
             <>
               <label htmlFor="retest-version" className="text-subtle">
