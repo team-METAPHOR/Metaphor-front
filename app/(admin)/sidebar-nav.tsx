@@ -8,6 +8,7 @@ const items = [
   { href: "/dashboard", label: "대시보드" },
   { href: "/reports", label: "신고 목록" },
   { href: "/settings", label: "사이트 설정" },
+  { href: "/org", label: "조직 관리" },
 ] as const;
 
 export function SidebarNav() {
