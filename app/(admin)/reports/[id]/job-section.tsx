@@ -13,6 +13,11 @@ const jobKind: Record<string, string> = {
   retest: "재시험",
 };
 
+/** 재시험에서 기준 판정과 비교한 결과 */
+const regressionLabel: Record<string, string> = {
+  resolved_in_test: "테스트 빌드에서 해결됨",
+};
+
 export function JobSection({ job, actions }: { job: Schemas["JobOut"]; actions?: React.ReactNode }) {
   const active = isActiveJob(job.status);
   return (
@@ -26,6 +31,7 @@ export function JobSection({ job, actions }: { job: Schemas["JobOut"]; actions?:
         </Field>
         <Field label="단계">{job.stage ? stageOrStatus(job.stage) : "-"}</Field>
         <Field label="종류">{jobKind[job.kind] ?? job.kind}</Field>
+        {job.regression && <Field label="재시험 결과">{regressionLabel[job.regression] ?? job.regression}</Field>}
         <Field label="시작">{formatDateTime(job.started_at)}</Field>
         <Field label="종료">{formatDateTime(job.finished_at)}</Field>
         {job.error_code && (
