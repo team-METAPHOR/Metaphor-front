@@ -235,7 +235,8 @@ export function CopyButton({ text, label, className }: { text: string; label: st
  */
 export function StepsCard({ report, jobId, steps }: { report: Report; jobId: string; steps: Step[] }) {
   const artifacts = useArtifacts(jobId);
-  const files = (artifacts.data?.items ?? []).filter((item) => item.kind === "report_md" || item.kind === "json");
+  // ponytail: JSON 산출물은 이름이 없어 구분할 수 없으므로 보고서만 내려받게 한다. 필요하면 백엔드에 파일 이름을 추가한다.
+  const files = (artifacts.data?.items ?? []).filter((item) => item.kind === "report_md");
   if (steps.length === 0) return null;
 
   return (
@@ -243,11 +244,11 @@ export function StepsCard({ report, jobId, steps }: { report: Report; jobId: str
       title="재현 절차"
       description="AI가 만들어 실제 브라우저에서 실행한 절차예요. 같은 순서로 따라 하면 재현돼요."
       aside={
-        <div className="flex shrink-0 gap-2">
+        <div className="flex flex-wrap gap-2">
           <CopyButton text={stepsText(report.number, steps)} label="복사" />
           {files.map((file) => (
             <a key={file.id} href={evidenceUrl(file.id)} download className={button.ghost}>
-              {file.kind === "report_md" ? "보고서" : "결과 JSON"} 내려받기
+              보고서 내려받기
             </a>
           ))}
         </div>

@@ -90,8 +90,8 @@ export function Card({
           : "border border-edge";
   return (
     <section className={`flex min-w-0 flex-col gap-4 rounded-xl bg-surface px-6 pt-[22px] pb-6 ${border} ${className ?? ""}`}>
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex min-w-0 flex-col gap-1.5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex min-w-60 flex-1 flex-col gap-1.5">
           <h2 className="text-lg font-semibold">{title}</h2>
           {description && <div className="text-[13px] text-subtle">{description}</div>}
         </div>
