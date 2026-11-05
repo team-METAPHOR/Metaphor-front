@@ -115,9 +115,9 @@ export function ReportsList() {
         <p className="text-[15px] text-subtle">
           {reports.data
             ? filters.status
-              ? `${statusLabel} 신고 ${visible.length.toLocaleString("ko-KR")}건`
-              : `처리 중인 신고 ${visible.length.toLocaleString("ko-KR")}건`
-            : "신고를 불러오는 중…"}
+              ? `${statusLabel} 제보 ${visible.length.toLocaleString("ko-KR")}건`
+              : `처리 중인 제보 ${visible.length.toLocaleString("ko-KR")}건`
+            : "제보를 불러오는 중…"}
         </p>
       </header>
 
@@ -153,15 +153,15 @@ export function ReportsList() {
         <>
           {reports.data.truncated && (
             <p className="rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning-ink">
-              신고가 많아 최근 {MAX_REPORTS.toLocaleString("ko-KR")}건 안에서만 찾았어요.
+              제보가 많아 최근 {MAX_REPORTS.toLocaleString("ko-KR")}건 안에서만 찾았어요.
             </p>
           )}
           <ReportTable rows={rows} />
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-[13px] text-muted">
               {filters.status === "closed"
-                ? "수정 확인을 통과해 마감된 신고예요."
-                : "수정 확인을 통과해 마감된 신고는 목록에서 빠집니다."}
+                ? "수정 확인을 통과해 마감된 제보예요."
+                : "수정 확인을 통과해 마감된 제보는 목록에서 빠져요."}
             </p>
             <Pagination page={page} pageCount={pageCount} onChange={(next) => update({ page: String(next) })} />
           </div>
@@ -183,7 +183,7 @@ function FilterSelect({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="relative flex items-center gap-2 rounded-lg bg-surface py-[9px] pr-3 pl-3.5 text-sm leading-none focus-within:ring-2 focus-within:ring-primary/60">
+    <label className="relative flex items-center gap-2 rounded-lg border border-edge bg-surface py-[9px] pr-3 pl-3.5 text-sm leading-none focus-within:ring-2 focus-within:ring-primary/60">
       <span className="text-subtle">{label}</span>
       <select
         value={value}
@@ -201,26 +201,26 @@ function FilterSelect({
   );
 }
 
-// 상태 132 · 제목 · 번호 96 · 신고 56 · 담당 132 · 접수 96 (Figma 제보 목록)
-const columns = "grid grid-cols-[132px_minmax(0,1fr)_96px_56px_132px_96px] items-center gap-4 px-6";
+// 상태 132 · 제목 · 번호 96 · 신고 수 64 · 담당 132 · 접수 96 (Figma 제보 목록)
+const columns = "grid grid-cols-[132px_minmax(0,1fr)_96px_64px_132px_96px] items-center gap-4 px-6";
 
 function ReportTable({ rows }: { rows: Report[] }) {
   return (
     // contain: 표 너비가 main을 밀어 넓히지 않고 이 안에서 가로 스크롤되게 한다.
-    <div className="overflow-x-auto rounded-xl bg-surface [contain:inline-size]">
+    <div className="overflow-x-auto rounded-xl border border-edge bg-surface [contain:inline-size]">
       <div role="table" aria-label="제보 목록" className="min-w-[860px]">
         <div role="row" className={`${columns} border-b border-line py-3.5 text-[13px] text-muted`}>
           <span role="columnheader">상태</span>
           <span role="columnheader">제목</span>
           <span role="columnheader">번호</span>
-          <span role="columnheader" className="text-right">
-            신고
+          <span role="columnheader" className="text-center">
+            신고 수
           </span>
           <span role="columnheader">담당</span>
           <span role="columnheader">접수</span>
         </div>
         {rows.length === 0 ? (
-          <p className="px-6 py-16 text-center text-[15px] text-subtle">조건에 맞는 신고가 없어요.</p>
+          <p className="px-6 py-16 text-center text-[15px] text-subtle">조건에 맞는 제보가 없어요.</p>
         ) : (
           rows.map((report) => <ReportRow key={report.id} report={report} />)
         )}
@@ -250,7 +250,7 @@ function ReportRow({ report }: { report: Report }) {
       <span role="cell" className="font-mono text-[13px] text-body">
         BUG-{report.number}
       </span>
-      <span role="cell" className="text-right text-[15px] font-medium text-body">
+      <span role="cell" className="text-center text-[15px] font-medium text-body">
         {reportCount(report)}
       </span>
       <span role="cell" className="min-w-0">
@@ -330,7 +330,7 @@ function TableSkeleton() {
 function ErrorMessage({ error }: { error: Error }) {
   return (
     <div role="alert" className="rounded-xl bg-surface px-6 py-4 text-sm text-danger">
-      <p>신고 목록을 불러오지 못했어요. {error.message}</p>
+      <p>제보 목록을 불러오지 못했어요. {error.message}</p>
       {error instanceof ApiError && error.requestId && (
         <p className="mt-1 text-xs text-muted">요청 ID: {error.requestId}</p>
       )}

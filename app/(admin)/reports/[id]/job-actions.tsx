@@ -44,7 +44,7 @@ export function RevalidateButton({
   return (
     <div className="flex flex-col items-end gap-1">
       {confirming ? (
-        <div className="flex flex-wrap items-center justify-end gap-2 rounded-lg bg-surface px-3 py-2 text-sm">
+        <div className="flex flex-wrap items-center justify-end gap-2 rounded-lg border border-edge bg-surface px-3 py-2 text-sm">
           <span>신고 내용으로 처음부터 다시 재현할까요?</span>
           <button
             type="button"
