@@ -1,9 +1,9 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { api, type Schemas } from "@/lib/api";
-import { Card, errorMessage, widgetSettingsKey } from "./ui";
+import { Card, CopyButton, errorMessage, widgetSettingsKey } from "./ui";
 
 type WidgetSettings = Schemas["WidgetSettingsResponse"];
 type ProjectKey = Schemas["ProjectKeyResponse"];
@@ -32,7 +32,7 @@ export function SdkSnippet({
     <Card
       title="SDK 설치"
       description="고객사 사이트의 <head>에 아래 코드를 넣으세요."
-      action={key ? <CopyButton text={snippet(key)} /> : undefined}
+      action={key ? <CopyButton text={snippet(key)} label="코드 복사" /> : undefined}
     >
       <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
         <span className="text-muted">Project key</span>
@@ -63,25 +63,6 @@ export function SdkSnippet({
 
       <RotateKey programId={programId} isAdmin={isAdmin} hasKey={key !== null} />
     </Card>
-  );
-}
-
-function CopyButton({ text }: { text: string }) {
-  const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        navigator.clipboard.writeText(text).then(
-          () => setState("copied"),
-          () => setState("failed"),
-        );
-        setTimeout(() => setState("idle"), 2000);
-      }}
-      className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:bg-background"
-    >
-      {state === "copied" ? "복사됨" : state === "failed" ? "복사 실패" : "코드 복사"}
-    </button>
   );
 }
 

@@ -6,6 +6,7 @@ import { Badge } from "@/components/badge";
 import { api, type Schemas } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { role as roleLabel } from "@/lib/labels";
+import { OriginVerificationCard } from "./origin-verification-card";
 import { Card, ErrorText, widgetSettingsKey } from "./ui";
 import { SdkSnippet } from "./sdk-snippet";
 import { WidgetSettingsCard } from "./widget-settings-card";
@@ -85,6 +86,7 @@ function ProgramDetail({ programId }: { programId: string }) {
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div className="space-y-6">
         <ProgramInfo query={program} />
+        <OriginVerificationCard programId={programId} isAdmin={isAdmin} />
         {settings.isPending && (
           <Card>
             <p className="text-sm text-muted">위젯 설정을 불러오는 중…</p>

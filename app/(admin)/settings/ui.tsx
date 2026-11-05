@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { ApiError } from "@/lib/api";
 
 export const widgetSettingsKey = (programId: string) => ["programs", programId, "widget-settings"] as const;
@@ -43,5 +46,24 @@ export function ErrorText({ error, what }: { error: unknown; what: string }) {
     <p role="alert" className="text-sm text-red-600">
       {what}을(를) 불러오지 못했어요. {errorMessage(error)}
     </p>
+  );
+}
+
+export function CopyButton({ text, label = "복사" }: { text: string; label?: string }) {
+  const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        navigator.clipboard.writeText(text).then(
+          () => setState("copied"),
+          () => setState("failed"),
+        );
+        setTimeout(() => setState("idle"), 2000);
+      }}
+      className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:bg-background"
+    >
+      {state === "copied" ? "복사됨" : state === "failed" ? "복사 실패" : label}
+    </button>
   );
 }
