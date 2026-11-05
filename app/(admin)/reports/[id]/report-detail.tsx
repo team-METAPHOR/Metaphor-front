@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Card, Icon, StatusBadge } from "@/components/ui";
 import { ApiError, type Schemas } from "@/lib/api";
 import { AssignmentCard } from "./assignment-card";
+import { ConditionResultsCard } from "./condition-results";
 import { DiagnosisCard } from "./diagnosis-card";
 import { EvidenceCard, LogEstimateCard } from "./evidence";
 import { CancelJobButton, RevalidateButton } from "./job-actions";
@@ -143,6 +144,7 @@ function Header({ report, current, variant }: { report: Report; current: Job | n
           {report.workflow_status !== "closed" && (
             <RevalidateButton
               reportId={report.id}
+              programId={report.program_id}
               label={variant === "pending" && !current ? "재현 시작" : "처음부터 다시 재현"}
               primary={variant === "not-reproduced" || variant === "stopped" || !current}
               disabled={active || !retryReady}
@@ -197,6 +199,7 @@ function JobLayout({
           <>
             <EvidenceCard report={report} />
             <TimelineCard report={report} job={repro} attempts={attempts.length} />
+            <ConditionResultsCard job={repro} programId={report.program_id} />
             {resultError}
             <AttemptsCard attempts={attempts} stepCount={steps.length} reproduced />
             {steps.length > 0 && <StepsCard report={report} jobId={repro.id} steps={steps} />}
@@ -225,6 +228,7 @@ function JobLayout({
         <>
           {!older && <NeedsCard reportId={report.id} programId={report.program_id} job={repro} />}
           <DiagnosisCard reportId={report.id} jobId={repro.id} />
+          <ConditionResultsCard job={repro} programId={report.program_id} />
           {resultError}
           <AttemptsCard attempts={attempts} stepCount={steps.length} reproduced={false} />
           <VideoCard jobId={repro.id} />
@@ -250,6 +254,7 @@ function StoppedLayout({ report, job, history }: { report: Report; job: Job; his
         <>
           <StopCard report={report} job={job} />
           <DiagnosisCard reportId={report.id} jobId={job.id} />
+          <ConditionResultsCard job={job} programId={report.program_id} />
         </>
       }
       side={

@@ -11,6 +11,7 @@ import { SdkSnippet } from "../settings/sdk-snippet";
 import { ErrorText, widgetSettingsKey } from "../settings/ui";
 import { WidgetSettingsCard } from "../settings/widget-settings-card";
 import { NotReady, Section, SettingRow, Toggle, modalInput } from "./parts";
+import { TestConditionsSection } from "./test-conditions";
 
 type Program = Schemas["ProgramResponse"];
 type ProgramList = Schemas["ProgramList"];
@@ -137,17 +138,9 @@ function SiteInfoTab({ programId }: { programId: string }) {
   );
 }
 
-const ENVIRONMENTS = [
-  { label: "Chrome 데스크톱", on: true },
-  { label: "Chrome 모바일", on: false },
-  { label: "Safari 데스크톱", on: false },
-  { label: "Safari 모바일", on: false },
-  { label: "Firefox", on: false },
-];
-
 /**
- * 재현 환경. 화면만 있다: 재현 대상 주소 지정, 테스트 계정 저장(Metaphor-back#61),
- * 환경 조합(Metaphor-back#60), 위험 요청 차단은 서버 기능이 생기면 연결한다.
+ * 재현 환경. 테스트 조건은 서버와 연결돼 있다.
+ * 재현 대상 주소 지정, 테스트 계정 저장(Metaphor-back#61), 위험 요청 차단은 화면만 있다.
  */
 function ReproTab({ programId }: { programId: string }) {
   const program = useProgram(programId);
@@ -156,7 +149,7 @@ function ReproTab({ programId }: { programId: string }) {
 
   return (
     <>
-      <NotReady>재현 환경 설정은 준비 중이에요. 지금은 사이트 기본 URL에서 Chrome 데스크톱으로 재현해요.</NotReady>
+      <NotReady>재현 대상 주소, 테스트 계정, 위험 요청 차단은 준비 중이에요. 지금은 사이트 기본 URL로 재현해요.</NotReady>
 
       <Section title="재현 환경" description="AI가 실제로 접속해서 버그를 따라 해 보는 곳이에요.">
         <div className="flex flex-col gap-2">
@@ -187,33 +180,13 @@ function ReproTab({ programId }: { programId: string }) {
         </div>
       </Section>
 
-      <Section title="재현 조건" description="같은 버그라도 환경마다 다르게 나타날 수 있어요.">
-        <div className="flex flex-col gap-2.5">
-          <span className="text-[13px] font-medium text-label">재현할 환경 조합</span>
-          <span className="text-xs text-muted">많이 고를수록 환경 차이를 더 잘 잡지만 실행 비용이 늘어요.</span>
-          <div className="flex flex-wrap gap-2">
-            {ENVIRONMENTS.map((env) => (
-              <button
-                key={env.label}
-                type="button"
-                disabled
-                aria-pressed={env.on}
-                className={`rounded-full border px-3.5 py-2 text-[13px] font-medium disabled:cursor-not-allowed ${
-                  env.on ? "border-primary bg-primary-soft text-primary-ink" : "border-border text-subtle opacity-70"
-                }`}
-              >
-                {env.on && "✓ "}
-                {env.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="mt-3.5 rounded-[10px] bg-surface-inset px-[18px]">
-          <SettingRow first label="위험 요청 차단" help="결제 승인, 삭제, 메일 발송 요청을 재현 중에 가로막아요.">
-            <Toggle on label="위험 요청 차단" disabled />
-          </SettingRow>
-        </div>
-      </Section>
+      <TestConditionsSection programId={programId} />
+
+      <div className="rounded-[10px] bg-surface-inset px-[18px]">
+        <SettingRow first label="위험 요청 차단" help="결제 승인, 삭제, 메일 발송 요청을 재현 중에 가로막아요.">
+          <Toggle on label="위험 요청 차단" disabled />
+        </SettingRow>
+      </div>
     </>
   );
 }

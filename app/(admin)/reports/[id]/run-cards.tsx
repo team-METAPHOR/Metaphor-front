@@ -115,8 +115,8 @@ function StepIcon({ state, size }: { state: StepState; size: number }) {
 const ROWS_FOLDED = 4;
 
 /**
- * 시도별 결과. 서버는 같은 절차를 2번 실행한 기록만 준다.
- * 조건을 바꿔 여러 번 실행한 결과(환경 차이 역추적)는 서버 지원이 필요하다(Metaphor-back#60).
+ * 시도별 결과. 같은 절차를 2번 실행한 기록이다.
+ * 조건을 바꿔 실행한 결과는 ConditionResultsCard가 따로 보여 준다.
  */
 export function AttemptsCard({
   attempts,

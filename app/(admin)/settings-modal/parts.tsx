@@ -57,7 +57,17 @@ export function NotReady({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function Toggle({ on, label, disabled }: { on: boolean; label: string; disabled?: boolean }) {
+export function Toggle({
+  on,
+  label,
+  disabled,
+  onChange,
+}: {
+  on: boolean;
+  label: string;
+  disabled?: boolean;
+  onChange?: (on: boolean) => void;
+}) {
   return (
     <button
       type="button"
@@ -65,6 +75,7 @@ export function Toggle({ on, label, disabled }: { on: boolean; label: string; di
       aria-checked={on}
       aria-label={label}
       disabled={disabled}
+      onClick={() => onChange?.(!on)}
       className={`relative h-[22px] w-10 shrink-0 rounded-full transition disabled:cursor-not-allowed disabled:opacity-60 ${on ? "bg-primary" : "bg-chip"}`}
     >
       <span

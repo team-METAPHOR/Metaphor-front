@@ -11,6 +11,7 @@ type JobResult = Schemas["JobResult"];
 type Handoff = Schemas["DeveloperHandoff"];
 type ArtifactList = Schemas["ArtifactList"];
 type JobList = Schemas["JobList"];
+type ConditionResultList = Schemas["ConditionResultList"];
 type DuplicateList = Schemas["ReportDuplicateList"];
 
 const POLL_MS = 3_000;
@@ -25,6 +26,7 @@ export const reportKeys = {
   events: (jobId: string) => ["validation-job", jobId, "events"] as const,
   result: (jobId: string) => ["validation-job", jobId, "result"] as const,
   artifacts: (jobId: string) => ["validation-job", jobId, "artifacts"] as const,
+  conditions: (jobId: string) => ["validation-job", jobId, "conditions"] as const,
 };
 
 export function isActiveJob(status: string | null | undefined): boolean {
@@ -83,6 +85,7 @@ function invalidateFinishedJob(client: QueryClient, reportId: string, jobId: str
   void client.invalidateQueries({ queryKey: reportKeys.result(jobId) });
   void client.invalidateQueries({ queryKey: reportKeys.artifacts(jobId) });
   void client.invalidateQueries({ queryKey: reportKeys.events(jobId) });
+  void client.invalidateQueries({ queryKey: reportKeys.conditions(jobId) });
 }
 
 /** 실행 중(queued/running/cancelling)이면 3초마다 다시 받고, 끝나면 멈춘다. */
@@ -174,5 +177,17 @@ export function useEvidenceText(artifactId: string | null) {
     enabled: artifactId != null,
     staleTime: Infinity,
     retry: retryUnlessDenied,
+  });
+}
+
+/** 조건 비교 실행의 조건별 결과. 실행 중에는 끝난 조건부터 보이도록 3초마다 다시 받는다. */
+export function useJobConditions(jobId: string, enabled: boolean, active: boolean) {
+  return useQuery({
+    queryKey: reportKeys.conditions(jobId),
+    queryFn: ({ signal }) =>
+      api<ConditionResultList>(`/validation-jobs/${encodeURIComponent(jobId)}/conditions`, { signal }),
+    enabled,
+    retry: retryUnlessDenied,
+    refetchInterval: active ? POLL_MS : false,
   });
 }
