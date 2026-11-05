@@ -759,6 +759,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports/{report_id}/eval-tag": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Eval Tag */
+        get: operations["get_eval_tag_api_v1_reports__report_id__eval_tag_get"];
+        /**
+         * Set Eval Tag
+         * @description Evaluator-only slot (`eval_run_id`, `case_id`, `repeat_id`). Stored apart from the
+         *     report and never sent to the model, engine or target site. Developer/admin only.
+         */
+        put: operations["set_eval_tag_api_v1_reports__report_id__eval_tag_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}/eval-record": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Eval Record
+         * @description Outcome, timing (received → report readable) and model calls of one report, derived
+         *     from stored rows. Definitions: docs/api/evaluation.md.
+         */
+        get: operations["get_eval_record_api_v1_reports__report_id__eval_record_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orgs/{org_id}/eval-runs/{eval_run_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export Eval Run
+         * @description Every report tagged with the run (success, failure, pending, cancelled, not run), one
+         *     record per slot. `format=csv` gives one row per report. Members of the org only.
+         */
+        get: operations["export_eval_run_api_v1_orgs__org_id__eval_runs__eval_run_id__export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -897,6 +961,24 @@ export interface components {
             /** Hypothesis */
             hypothesis: string | null;
         };
+        /**
+         * BlockedRequest
+         * @description Out-of-scope subresource the engine blocked and continued past (0.6.0).
+         */
+        BlockedRequest: {
+            /** Method */
+            method: string | null;
+            /** Url */
+            url: string;
+            /** Resource Type */
+            resource_type: string | null;
+            /** Blocker */
+            blocker: string | null;
+            /** Send Attempted */
+            send_attempted: boolean | null;
+            /** Non Fatal */
+            non_fatal: boolean | null;
+        };
         /** Body_create_report_api_v1_reports_post */
         Body_create_report_api_v1_reports_post: {
             /** Program Id */
@@ -986,6 +1068,7 @@ export interface components {
             stop_point: string | null;
             /** Duration Ms */
             duration_ms: number | null;
+            diagnosis?: components["schemas"]["Diagnosis"] | null;
         };
         /** ConditionResultList */
         ConditionResultList: {
@@ -1083,6 +1166,7 @@ export interface components {
             missing_information: components["schemas"]["AiQuestions"];
             hypotheses: components["schemas"]["AiHypotheses"];
             timings: components["schemas"]["Timings"] | null;
+            state_changes?: components["schemas"]["StateChangeApproval"] | null;
         };
         /** DiagnosisAttempt */
         DiagnosisAttempt: {
@@ -1114,6 +1198,251 @@ export interface components {
             /** Timeline */
             timeline: components["schemas"]["TimelineEntry"][];
             video: components["schemas"]["AttemptVideo"] | null;
+            /**
+             * Blocked Requests
+             * @default []
+             */
+            blocked_requests: components["schemas"]["BlockedRequest"][];
+            /**
+             * State Changing Requests
+             * @default []
+             */
+            state_changing_requests: components["schemas"]["StateChangingRequest"][];
+        };
+        /** EvalCondition */
+        EvalCondition: {
+            /** Ordinal */
+            ordinal: number;
+            /** Condition Id */
+            condition_id: string | null;
+            /** Status */
+            status: string;
+            /** Verdict */
+            verdict: string | null;
+            /** Error Code */
+            error_code: string | null;
+            /** Duration Ms */
+            duration_ms: number | null;
+        };
+        /** EvalExport */
+        EvalExport: {
+            /** Eval Run Id */
+            eval_run_id: string;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            totals: components["schemas"]["EvalTotals"];
+            /** Items */
+            items: components["schemas"]["EvalRecord"][];
+        };
+        /** EvalJob */
+        EvalJob: {
+            /** Id */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Status */
+            status: string;
+            /** Automatic */
+            automatic: boolean;
+            /** Parent Job Id */
+            parent_job_id: string | null;
+            /** Baseline Job Id */
+            baseline_job_id: string | null;
+            /** Claims */
+            claims: number;
+            /** Verdict */
+            verdict: string | null;
+            /** Reason Code */
+            reason_code: string | null;
+            /** Error Code */
+            error_code: string | null;
+            /** Backend Error Code */
+            backend_error_code: string | null;
+            /** Error Codes */
+            error_codes: string[];
+            /** Browser Attempts */
+            browser_attempts: number;
+            /** Result Available */
+            result_available: boolean;
+            /** Report Md Available */
+            report_md_available: boolean;
+            /** Plan Review */
+            plan_review: {
+                [key: string]: unknown;
+            } | null;
+            timing: components["schemas"]["EvalTiming"];
+            /** Model Calls */
+            model_calls: components["schemas"]["EvalModelCall"][];
+            /** Conditions */
+            conditions: components["schemas"]["EvalCondition"][];
+            /** Result Url */
+            result_url: string;
+            /** Artifacts Url */
+            artifacts_url: string;
+        };
+        /**
+         * EvalModelCall
+         * @description One engine model call, from the stored (redacted) engine result.
+         */
+        EvalModelCall: {
+            /** Phase */
+            phase: string | null;
+            /** Role */
+            role: string | null;
+            /** Status */
+            status: string | null;
+            /** Model */
+            model: string | null;
+            /** Configured Model */
+            configured_model?: string | null;
+            /** Usage Known */
+            usage_known: boolean;
+            /** Input Tokens */
+            input_tokens: number | null;
+            /** Output Tokens */
+            output_tokens: number | null;
+            /** Latency Ms */
+            latency_ms: number | null;
+            /** Retry After Seconds */
+            retry_after_seconds: number | null;
+        };
+        /** EvalRecord */
+        EvalRecord: {
+            /** Report Id */
+            report_id: string;
+            /** Report Number */
+            report_number: number;
+            /** Program Id */
+            program_id: string;
+            /** Source */
+            source: string;
+            eval: components["schemas"]["EvalTag"] | null;
+            /**
+             * Received At
+             * Format: date-time
+             */
+            received_at: string;
+            /** Duplicate Submissions */
+            duplicate_submissions: number;
+            /** Run Blocked */
+            run_blocked: string | null;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "report_ready" | "needs_info" | "inconclusive" | "failed" | "timeout" | "cancelled" | "unfinished" | "not_run";
+            /** Final Job Id */
+            final_job_id: string | null;
+            /** Final Status */
+            final_status: string | null;
+            /** Verdict */
+            verdict: string | null;
+            /** Report Ready At */
+            report_ready_at: string | null;
+            /** Processing Ms */
+            processing_ms: number | null;
+            /** Ended At */
+            ended_at: string | null;
+            /** Ended Ms */
+            ended_ms: number | null;
+            /** Qa Jobs */
+            qa_jobs: number;
+            /** Retries */
+            retries: number;
+            /** Retests */
+            retests: number;
+            /** Error Codes */
+            error_codes: string[];
+            /** Report Url */
+            report_url: string;
+            /** Jobs */
+            jobs: components["schemas"]["EvalJob"][];
+        };
+        /** EvalTag */
+        EvalTag: {
+            /** Report Id */
+            report_id: string;
+            /** Eval Run Id */
+            eval_run_id: string;
+            /** Case Id */
+            case_id: string;
+            /** Repeat Id */
+            repeat_id: string;
+            /**
+             * Tagged At
+             * Format: date-time
+             */
+            tagged_at: string;
+        };
+        /** EvalTagUpdate */
+        EvalTagUpdate: {
+            /** Eval Run Id */
+            eval_run_id: string;
+            /** Case Id */
+            case_id: string;
+            /** Repeat Id */
+            repeat_id: string;
+        };
+        /**
+         * EvalTiming
+         * @description UTC timestamps and derived spans (ms). null = not reached or not reported.
+         */
+        EvalTiming: {
+            /**
+             * Queued At
+             * Format: date-time
+             */
+            queued_at: string;
+            /** Claimed At */
+            claimed_at: string | null;
+            /** Engine Started At */
+            engine_started_at: string | null;
+            /** Engine Finished At */
+            engine_finished_at: string | null;
+            /** Persisted At */
+            persisted_at: string | null;
+            /** Queue Wait Ms */
+            queue_wait_ms: number | null;
+            /** Setup Ms */
+            setup_ms: number | null;
+            /** Engine Ms */
+            engine_ms: number | null;
+            /** Model Ms */
+            model_ms: number | null;
+            /** Browser Ms */
+            browser_ms: number | null;
+            /** Login Reset Ms */
+            login_reset_ms?: number | null;
+            /** Persist Ms */
+            persist_ms: number | null;
+            /** Total Ms */
+            total_ms: number | null;
+        };
+        /** EvalTotals */
+        EvalTotals: {
+            /** Reports */
+            reports: number;
+            /** Duplicate Submissions */
+            duplicate_submissions: number;
+            /** Qa Jobs */
+            qa_jobs: number;
+            /** Retests */
+            retests: number;
+            /** Model Calls */
+            model_calls: number;
+            /** Model Calls Usage Unknown */
+            model_calls_usage_unknown: number;
+            /** Browser Attempts */
+            browser_attempts: number;
+            /** Report Files */
+            report_files: number;
+            /** Outcomes */
+            outcomes: {
+                [key: string]: number;
+            };
         };
         /** EventList */
         EventList: {
@@ -1456,6 +1785,8 @@ export interface components {
             blocker: string | null;
             /** Observation Ids */
             observation_ids: string[];
+            /** Non Fatal */
+            non_fatal?: boolean | null;
         };
         /** OrgCreate */
         OrgCreate: {
@@ -1590,6 +1921,7 @@ export interface components {
              * @default stateless
              */
             reset_adapter: string;
+            state_changes?: components["schemas"]["StateChanges"] | null;
         };
         /** ProgramList */
         ProgramList: {
@@ -1626,6 +1958,7 @@ export interface components {
             mask_selectors?: string[] | null;
             /** Reset Adapter */
             reset_adapter?: string | null;
+            state_changes?: components["schemas"]["StateChanges"] | null;
         };
         /**
          * ProgramResponse
@@ -1962,6 +2295,7 @@ export interface components {
             credentials_blocked_by_http: boolean;
             /** Reset Adapter */
             reset_adapter: string;
+            state_changes?: components["schemas"]["StateChanges"] | null;
             /**
              * Created At
              * Format: date-time
@@ -1990,6 +2324,58 @@ export interface components {
             /** Tradeoffs */
             tradeoffs: string[];
         };
+        /**
+         * StateChangeApproval
+         * @description The approval the run used (`environment.state_changes`); compared on retest.
+         */
+        StateChangeApproval: {
+            /**
+             * Environment
+             * @enum {string}
+             */
+            environment: "test" | "staging";
+            /** Reset Adapter Id */
+            reset_adapter_id: string;
+            /** Allowed Requests */
+            allowed_requests: [
+                string,
+                string
+            ][];
+        };
+        /**
+         * StateChanges
+         * @description Approved writes to disposable test data (engine `StateChangePolicy`). Admin-only.
+         */
+        StateChanges: {
+            /**
+             * Environment
+             * @enum {string}
+             */
+            environment: "test" | "staging";
+            /** Reset Adapter Id */
+            reset_adapter_id: string;
+            /** Allowed Requests */
+            allowed_requests: [
+                "POST" | "PUT" | "PATCH" | "DELETE",
+                string
+            ][];
+        };
+        /**
+         * StateChangingRequest
+         * @description Approved-write audit (0.6.0): method/path/status only, never bodies or headers.
+         */
+        StateChangingRequest: {
+            /** Method */
+            method: string;
+            /** Path */
+            path: string;
+            /** Send Attempted */
+            send_attempted: boolean | null;
+            /** Status */
+            status: number | null;
+            /** Blocker */
+            blocker: string | null;
+        };
         /** TestAccountPut */
         TestAccountPut: {
             /**
@@ -2010,6 +2396,11 @@ export interface components {
             success_path?: string | null;
             /** Success Selector */
             success_selector?: string | null;
+            /**
+             * Unauthenticated Paths
+             * @default []
+             */
+            unauthenticated_paths: string[];
         };
         /**
          * TestAccountResponse
@@ -2033,6 +2424,11 @@ export interface components {
             success_path?: string | null;
             /** Success Selector */
             success_selector?: string | null;
+            /**
+             * Unauthenticated Paths
+             * @default []
+             */
+            unauthenticated_paths: string[];
             /** Updated At */
             updated_at: string | null;
         };
@@ -4011,6 +4407,137 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_eval_tag_api_v1_reports__report_id__eval_tag_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvalTag"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_eval_tag_api_v1_reports__report_id__eval_tag_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvalTagUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvalTag"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_eval_record_api_v1_reports__report_id__eval_record_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvalRecord"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_eval_run_api_v1_orgs__org_id__eval_runs__eval_run_id__export_get: {
+        parameters: {
+            query?: {
+                format?: "json" | "csv";
+            };
+            header?: never;
+            path: {
+                org_id: string;
+                eval_run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvalExport"];
+                };
             };
             /** @description Validation Error */
             422: {
