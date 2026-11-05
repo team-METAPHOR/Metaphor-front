@@ -10,6 +10,7 @@ type EventList = Schemas["EventList"];
 type JobResult = Schemas["JobResult"];
 type Handoff = Schemas["DeveloperHandoff"];
 type ArtifactList = Schemas["ArtifactList"];
+type DuplicateList = Schemas["ReportDuplicateList"];
 
 const POLL_MS = 3_000;
 const HANDOFF_POLL_MS = 5_000;
@@ -17,6 +18,7 @@ const HANDOFF_POLL_MS = 5_000;
 export const reportKeys = {
   report: (reportId: string) => ["report", reportId] as const,
   handoff: (reportId: string) => ["report", reportId, "handoff"] as const,
+  duplicates: (reportId: string) => ["report", reportId, "duplicates"] as const,
   job: (jobId: string) => ["validation-job", jobId] as const,
   events: (jobId: string) => ["validation-job", jobId, "events"] as const,
   result: (jobId: string) => ["validation-job", jobId, "result"] as const,
@@ -40,6 +42,17 @@ export function useReport(reportId: string) {
   return useQuery({
     queryKey: reportKeys.report(reportId),
     queryFn: () => api<Report>(`/reports/${encodeURIComponent(reportId)}`),
+    retry: retryUnlessDenied,
+  });
+}
+
+/** 같은 신고로 묶인 위젯 제보(최신순). 서버는 처음 몇 건만 원문을 보관하므로 duplicate_count보다 적을 수 있다. */
+export function useDuplicates(reportId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: reportKeys.duplicates(reportId),
+    queryFn: ({ signal }) =>
+      api<DuplicateList>(`/reports/${encodeURIComponent(reportId)}/duplicates?limit=100`, { signal }),
+    enabled,
     retry: retryUnlessDenied,
   });
 }
