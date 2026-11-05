@@ -79,7 +79,11 @@ function SettingsDialog({ tab }: { tab: SettingsTab }) {
       ref={dialog}
       aria-labelledby="settings-title"
       // Esc로 닫혀도 주소에서 ?settings를 지워 상태를 맞춘다.
-      onClose={close}
+      // React는 안쪽 확인 대화상자(키 재발급, 멤버 역할 변경 등)의 close도 여기로 올려 보내므로
+      // 설정 모달 자신이 닫힐 때만 처리한다.
+      onClose={(event) => {
+        if (event.target === event.currentTarget) close();
+      }}
       onClick={(event) => {
         if (event.target === dialog.current) dialog.current.close();
       }}
