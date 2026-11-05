@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { JobStatusBadge, VerdictBadge, WorkflowBadge } from "@/components/badge";
+import { JobStatusBadge, ProgressBadge, VerdictBadge } from "@/components/badge";
 import { ApiError, api, type Schemas } from "@/lib/api";
 import { type Bar, computeStats } from "./stats";
 
@@ -82,14 +82,22 @@ export function DashboardView() {
           label="미처리"
           value={stats.pending.toLocaleString("ko-KR")}
           unit="건"
-          note="처리 상태 변경 기능 전이라 모든 신고가 접수 상태예요."
+          note="처리 상태가 신규인 신고예요."
         />
-        <Metric label="평균 처리 시간" value="-" note="백엔드 지원 필요" />
+        <Metric
+          label="평균 처리 시간"
+          value={stats.avgCloseMs === null ? "-" : formatDuration(stats.avgCloseMs)}
+          note={
+            stats.closedCount > 0
+              ? `마감된 ${stats.closedCount}건의 접수부터 마감까지`
+              : "마감된 신고가 아직 없어요."
+          }
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Panel title="처리 상태 분포" description="사람이 정하는 처리 상태예요.">
-          <BarList bars={stats.workflow} total={stats.total} />
+        <Panel title="진행 단계" description="신규 신고 → 재현 중 → 재현 완료 → 버그 수정 중 → 마감">
+          <BarList bars={stats.stages} total={stats.total} />
         </Panel>
         <Panel title="재현 판정 분포" description="최근 검증 job의 판정이에요. 재현 안 됨은 버그가 없다는 뜻이 아니에요.">
           <BarList bars={stats.verdict} total={stats.total} />
@@ -116,14 +124,17 @@ export function DashboardView() {
                     className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-lg px-2 py-3 hover:bg-background"
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">{report.title}</span>
+                      <span className="block truncate text-sm font-medium">
+                        <span className="mr-1.5 font-mono text-xs text-muted">BUG-{report.number}</span>
+                        {report.title}
+                      </span>
                       <span className="block text-xs text-muted">
                         {stats.programNames.get(report.program_id) ?? report.program_id} ·{" "}
                         {new Date(report.created_at).toLocaleString("ko-KR")}
                       </span>
                     </span>
                     <span className="flex shrink-0 gap-1.5">
-                      <WorkflowBadge value={report.workflow_status} />
+                      <ProgressBadge value={report.progress} />
                       <JobStatusBadge value={report.latest_job?.status} />
                       <VerdictBadge value={report.latest_job?.verdict} />
                     </span>
@@ -218,4 +229,13 @@ function BarList({ bars, total }: { bars: Bar[]; total: number }) {
       })}
     </ul>
   );
+}
+
+/** 1시간 미만은 분, 하루 미만은 시간, 그 이상은 일 단위로 보여준다. */
+function formatDuration(ms: number): string {
+  const minutes = ms / 60_000;
+  if (minutes < 60) return `${Math.max(1, Math.round(minutes))}분`;
+  const hours = minutes / 60;
+  if (hours < 24) return `${hours.toFixed(1)}시간`;
+  return `${(hours / 24).toFixed(1)}일`;
 }

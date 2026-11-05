@@ -25,8 +25,9 @@ function makeBadge(lookup: Lookup) {
   };
 }
 
-// 처리 상태, 실행 상태, 재현 판정은 항상 각각의 배지로 따로 보여준다.
+// 처리 상태, 진행 단계, 실행 상태, 재현 판정은 항상 각각의 배지로 따로 보여준다.
 export const WorkflowBadge = makeBadge(labels.workflowStatus);
+export const ProgressBadge = makeBadge(labels.progress);
 export const JobStatusBadge = makeBadge(labels.jobStatus);
 export const VerdictBadge = makeBadge(labels.verdict);
 export const ClassificationBadge = makeBadge(labels.classification);
