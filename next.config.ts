@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
-const apiOrigin = process.env.API_ORIGIN ?? "http://localhost:8000";
+// scheme://host[:port] 만 쓴다. 값에 /api 같은 경로가 붙어 있어도 /api/v1 이 이중으로 붙지 않게 한다.
+const apiOrigin = new URL(process.env.API_ORIGIN || "http://localhost:8000").origin;
 
 const nextConfig: NextConfig = {
   /* config options here */
