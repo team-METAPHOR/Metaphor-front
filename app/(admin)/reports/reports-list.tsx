@@ -3,11 +3,12 @@
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Avatar, Icon, StatusBadge, formatShortTime } from "@/components/ui";
 import { ApiError, api, type Schemas } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { orgKeys } from "../org/ui";
-import { MAX_REPORTS, type Report, hintClass, reportCount, reportHint, useAllReports } from "./all-reports";
+import { type Report, type ReportQuery, hintClass, reportCount, reportHint, useReportPage } from "./all-reports";
 
 const PAGE_SIZE = 20;
 
@@ -34,55 +35,69 @@ const PERIOD_OPTIONS: Option[] = [
   { value: "30", label: "최근 30일" },
 ];
 
+// 서버 정렬은 접수 시각 기준만 있다.
 const SORT_OPTIONS: Option[] = [
   { value: "", label: "최신순" },
   { value: "oldest", label: "오래된순" },
-  { value: "reports", label: "신고 많은 순" },
 ];
 
-type Filters = { status: string; period: string; assignee: string; mine: boolean; sort: string; page: number };
+type Filters = {
+  status: string;
+  period: string;
+  site: string;
+  assignee: string;
+  mine: boolean;
+  q: string;
+  sort: string;
+  page: number;
+};
 
 function readFilters(params: URLSearchParams): Filters {
   const page = Number(params.get("page"));
   return {
     status: params.get("status") ?? "",
     period: params.get("period") ?? "",
+    site: params.get("site") ?? "",
     assignee: params.get("assignee") ?? "",
     mine: params.get("mine") === "1",
+    q: params.get("q") ?? "",
     sort: params.get("sort") ?? "",
     page: Number.isInteger(page) && page > 1 ? page : 1,
   };
 }
 
-function applyFilters(reports: Report[], filters: Filters, userId: string, now = Date.now()): Report[] {
-  const since = filters.period
-    ? new Date(new Date(now).setHours(0, 0, 0, 0)).getTime() - (Number(filters.period) - 1) * 86_400_000
-    : null;
-  const filtered = reports.filter((report) => {
-    if (filters.status ? report.progress !== filters.status : report.progress === "closed") return false;
-    if (since !== null && Date.parse(report.created_at) < since) return false;
-    if (filters.mine && report.assignee?.id !== userId) return false;
-    if (filters.assignee === "none" && report.assignee) return false;
-    if (filters.assignee && filters.assignee !== "none" && report.assignee?.id !== filters.assignee) return false;
-    return true;
-  });
-  const byDate = (a: Report, b: Report) => b.created_at.localeCompare(a.created_at);
-  if (filters.sort === "oldest") return filtered.sort((a, b) => byDate(b, a));
-  if (filters.sort === "reports") return filtered.sort((a, b) => b.duplicate_count - a.duplicate_count || byDate(a, b));
-  return filtered.sort(byDate);
+/** 화면 필터를 서버 조건으로 바꾼다. 기간은 오늘 0시(브라우저 시간대)부터 N일. */
+function toQuery(filters: Filters, now = new Date()): ReportQuery {
+  let from: string | undefined;
+  if (filters.period) {
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    start.setDate(start.getDate() - (Number(filters.period) - 1));
+    from = start.toISOString();
+  }
+  return {
+    progress: filters.status || undefined,
+    from,
+    programId: filters.site || undefined,
+    assignee: filters.mine ? "me" : filters.assignee || undefined,
+    q: filters.q.trim() || undefined,
+    sort: filters.sort === "oldest" ? "created_asc" : "created_desc",
+    page: filters.page,
+    limit: PAGE_SIZE,
+  };
 }
 
 export function ReportsList() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { user, membership } = useSession();
+  const { membership } = useSession();
   const filters = readFilters(searchParams);
-  const reports = useAllReports();
+  const reports = useReportPage(toQuery(filters));
   const members = useQuery({
     queryKey: orgKeys.members(membership.org_id),
     queryFn: () => api<Schemas["MemberResponse"][]>(`/orgs/${encodeURIComponent(membership.org_id)}/members`),
   });
+  const programs = useQuery({ queryKey: ["programs"], queryFn: () => api<Schemas["ProgramList"]>("/programs") });
 
   /** 필터가 바뀌면 첫 페이지로 돌아간다. */
   function update(changes: Partial<Record<keyof Filters, string>>) {
@@ -98,16 +113,18 @@ export function ReportsList() {
 
   const assigneeOptions: Option[] = [
     { value: "", label: "전체" },
-    { value: "none", label: "없음" },
     ...(members.data ?? [])
       .filter((member) => member.is_active)
       .map((member) => ({ value: member.user_id, label: member.display_name ?? member.email })),
   ];
+  const siteOptions: Option[] = [
+    { value: "", label: "전체" },
+    ...(programs.data?.items ?? []).map((program) => ({ value: program.id, label: program.name })),
+  ];
 
-  const visible = reports.data ? applyFilters(reports.data.items, filters, user.id) : [];
-  const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
-  const page = Math.min(filters.page, pageCount);
-  const rows = visible.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const total = reports.data?.total ?? 0;
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const rows = reports.data?.items ?? [];
   const statusLabel = STATUS_OPTIONS.find((option) => option.value === filters.status)?.label;
 
   return (
@@ -117,14 +134,17 @@ export function ReportsList() {
         <p className="text-[15px] text-subtle">
           {reports.data
             ? filters.status
-              ? `${statusLabel} 제보 ${visible.length.toLocaleString("ko-KR")}건`
-              : `처리 중인 제보 ${visible.length.toLocaleString("ko-KR")}건`
+              ? `${statusLabel} 제보 ${total.toLocaleString("ko-KR")}건`
+              : `처리 중인 제보 ${total.toLocaleString("ko-KR")}건`
             : "제보를 불러오는 중…"}
         </p>
       </header>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
+          {siteOptions.length > 2 && (
+            <FilterSelect label="사이트" value={filters.site} options={siteOptions} onChange={(v) => update({ site: v })} />
+          )}
           <FilterSelect label="상태" value={filters.status} options={STATUS_OPTIONS} onChange={(v) => update({ status: v })} />
           <FilterSelect label="기간" value={filters.period} options={PERIOD_OPTIONS} onChange={(v) => update({ period: v })} />
           <FilterSelect
@@ -144,7 +164,10 @@ export function ReportsList() {
             내 담당만
           </button>
         </div>
-        <FilterSelect label="정렬" value={filters.sort} options={SORT_OPTIONS} onChange={(v) => update({ sort: v })} />
+        <div className="flex flex-wrap items-center gap-2">
+          <SearchBox value={filters.q} onChange={(v) => update({ q: v })} />
+          <FilterSelect label="정렬" value={filters.sort} options={SORT_OPTIONS} onChange={(v) => update({ sort: v })} />
+        </div>
       </div>
 
       {reports.isPending ? (
@@ -153,11 +176,6 @@ export function ReportsList() {
         <ErrorMessage error={reports.error} />
       ) : (
         <>
-          {reports.data.truncated && (
-            <p className="rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning-ink">
-              제보가 많아 최근 {MAX_REPORTS.toLocaleString("ko-KR")}건 안에서만 찾았어요.
-            </p>
-          )}
           <ReportTable rows={rows} />
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-[13px] text-muted">
@@ -165,7 +183,11 @@ export function ReportsList() {
                 ? "마감된 제보예요."
                 : "마감된 제보는 목록에서 빠져요."}
             </p>
-            <Pagination page={page} pageCount={pageCount} onChange={(next) => update({ page: String(next) })} />
+            <Pagination
+              page={Math.min(filters.page, pageCount)}
+              pageCount={pageCount}
+              onChange={(next) => update({ page: String(next) })}
+            />
           </div>
         </>
       )}
@@ -199,6 +221,35 @@ function FilterSelect({
         ))}
       </select>
       <Icon name="chevron-down" size={14} className="pointer-events-none absolute right-3" />
+    </label>
+  );
+}
+
+/** 제목·내용 검색. 입력을 멈추고 0.3초 뒤에 주소에 반영한다. */
+function SearchBox({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const [text, setText] = useState(value);
+  // 뒤로 가기 등으로 주소의 검색어가 바뀌면 입력칸도 따라간다.
+  const [synced, setSynced] = useState(value);
+  if (value !== synced) {
+    setSynced(value);
+    setText(value);
+  }
+  useEffect(() => {
+    if (text === value) return;
+    const timer = setTimeout(() => onChange(text), 300);
+    return () => clearTimeout(timer);
+  }, [text, value, onChange]);
+  return (
+    <label className="flex items-center rounded-lg border border-edge bg-surface px-3.5 py-[9px] text-sm leading-none focus-within:ring-2 focus-within:ring-primary/60">
+      <span className="sr-only">제보 검색</span>
+      <input
+        type="search"
+        value={text}
+        maxLength={100}
+        placeholder="제목·내용 검색"
+        onChange={(event) => setText(event.target.value)}
+        className="w-44 bg-transparent text-foreground outline-none placeholder:text-faint"
+      />
     </label>
   );
 }
