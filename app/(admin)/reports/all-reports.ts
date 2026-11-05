@@ -1,13 +1,46 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { api, type Schemas } from "@/lib/api";
 
 export type Report = Schemas["ReportItem"];
 type ReportList = Schemas["ReportList"];
 
-// 서버 목록 API에 진행 단계·기간 필터, 정렬, 총 개수, 통계가 없다(Metaphor-back#58, #59).
-// 그래서 목록을 모두 받아 브라우저에서 거르고 센다. 해커톤 규모 기준 상한.
+/** 제보 목록 한 페이지 조건. 값이 없으면 서버 기본값(마감 제외, 최신순)을 쓴다. */
+export type ReportQuery = {
+  progress?: string;
+  /** 접수 시각 하한(포함), ISO 문자열 */
+  from?: string;
+  programId?: string;
+  /** "me" 또는 사용자 id */
+  assignee?: string;
+  q?: string;
+  sort: "created_desc" | "created_asc";
+  page: number;
+  limit: number;
+};
+
+function reportParams(query: ReportQuery): URLSearchParams {
+  const params = new URLSearchParams({ sort: query.sort, page: String(query.page), limit: String(query.limit) });
+  if (query.progress) params.set("progress", query.progress);
+  if (query.from) params.set("from", query.from);
+  if (query.programId) params.set("program_id", query.programId);
+  if (query.assignee) params.set("assignee", query.assignee);
+  if (query.q) params.set("q", query.q);
+  return params;
+}
+
+/** 제보 목록 한 페이지. 서버가 거르고 정렬하고 총 개수(total)를 준다. 조건을 바꾸는 동안 이전 페이지를 계속 보여 준다. */
+export function useReportPage(query: ReportQuery) {
+  return useQuery({
+    queryKey: ["reports", "page", query],
+    queryFn: ({ signal }) => api<ReportList>(`/reports?${reportParams(query)}`, { signal }),
+    placeholderData: keepPreviousData,
+  });
+}
+
+// 대시보드 통계는 아직 브라우저에서 센다. 서버 집계(report-summary/report-stats)로 바꾸면 지운다.
+// 해커톤 규모 기준 상한.
 const PAGE_SIZE = 100;
 const MAX_PAGES = 50;
 export const MAX_REPORTS = PAGE_SIZE * MAX_PAGES;
