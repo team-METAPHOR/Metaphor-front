@@ -39,34 +39,6 @@ export function useReportPage(query: ReportQuery) {
   });
 }
 
-// 대시보드 통계는 아직 브라우저에서 센다. 서버 집계(report-summary/report-stats)로 바꾸면 지운다.
-// 해커톤 규모 기준 상한.
-const PAGE_SIZE = 100;
-const MAX_PAGES = 50;
-export const MAX_REPORTS = PAGE_SIZE * MAX_PAGES;
-
-async function fetchAllReports(signal: AbortSignal): Promise<{ items: Report[]; truncated: boolean }> {
-  const items: Report[] = [];
-  let cursor: string | null = null;
-  for (let page = 0; page < MAX_PAGES; page++) {
-    const query = new URLSearchParams({ limit: String(PAGE_SIZE) });
-    if (cursor) query.set("cursor", cursor);
-    const data: ReportList = await api<ReportList>(`/reports?${query}`, { signal });
-    items.push(...data.items);
-    if (!data.next_cursor) return { items, truncated: false };
-    cursor = data.next_cursor;
-  }
-  return { items, truncated: true };
-}
-
-/** 대시보드와 제보 목록이 같은 캐시를 쓴다. 처리 상태를 바꾸면 ["reports"]를 무효화한다. */
-export function useAllReports() {
-  return useQuery({
-    queryKey: ["reports", "all"],
-    queryFn: ({ signal }) => fetchAllReports(signal),
-  });
-}
-
 /** 같은 버그로 묶인 신고 수(원래 신고 포함). */
 export function reportCount(report: Pick<Report, "duplicate_count">): number {
   return report.duplicate_count + 1;
@@ -114,11 +86,3 @@ export const hintClass: Record<Hint["tone"], string> = {
   warning: "text-warning",
   faint: "text-faint",
 };
-
-/** 이번 주 월요일 00:00(브라우저 시간대). */
-export function startOfWeek(now = new Date()): Date {
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const offset = (start.getDay() + 6) % 7; // 월요일 0
-  start.setDate(start.getDate() - offset);
-  return start;
-}

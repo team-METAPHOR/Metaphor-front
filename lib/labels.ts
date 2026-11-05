@@ -122,6 +122,18 @@ export const source = lookup(
   none,
 );
 
+/** 서버가 붙이는 필요 조치(required_actions) 코드 → 사람이 할 일. 모르는 코드는 서버 메시지를 쓴다. */
+const REQUIRED_ACTIONS: Record<string, string> = {
+  CHECK_TEST_ACCOUNT: "테스트 계정으로 로그인하지 못했어요. 계정을 확인하세요.",
+  TEST_ACCOUNT_REQUIRED: "테스트 계정을 다시 저장해야 해요.",
+  USE_HTTPS_FOR_CREDENTIALS: "로그인이 필요한 재현은 HTTPS 주소에서만 할 수 있어요.",
+  CHECK_TARGET_URL: "재현 대상 주소가 허용 범위를 벗어났어요. 사이트 설정을 확인하세요.",
+};
+
+export function requiredAction(action: { code: string; message: string }): string {
+  return REQUIRED_ACTIONS[action.code] ?? action.message;
+}
+
 export const role = lookup(
   {
     developer: { label: "개발자", tone: "neutral" },
