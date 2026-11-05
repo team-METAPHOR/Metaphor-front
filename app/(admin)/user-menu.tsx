@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useLogout, useSession } from "@/lib/auth";
 import * as labels from "@/lib/labels";
 
@@ -13,14 +14,19 @@ export function UserMenu() {
       <p className="truncate text-xs">
         {membership.org_name} · {labels.role(membership.role).label}
       </p>
-      <button
-        type="button"
-        onClick={() => logout.mutate()}
-        disabled={logout.isPending}
-        className="mt-3 text-xs underline-offset-2 hover:text-white hover:underline disabled:opacity-50"
-      >
-        로그아웃
-      </button>
+      <div className="mt-3 flex gap-3 text-xs">
+        <Link href="/account" className="underline-offset-2 hover:text-white hover:underline">
+          계정 설정
+        </Link>
+        <button
+          type="button"
+          onClick={() => logout.mutate()}
+          disabled={logout.isPending}
+          className="underline-offset-2 hover:text-white hover:underline disabled:opacity-50"
+        >
+          로그아웃
+        </button>
+      </div>
     </div>
   );
 }
