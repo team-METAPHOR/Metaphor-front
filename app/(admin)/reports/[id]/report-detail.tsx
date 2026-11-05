@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Card, Icon, StatusBadge } from "@/components/ui";
 import { ApiError, type Schemas } from "@/lib/api";
 import { AssignmentCard } from "./assignment-card";
@@ -9,6 +10,7 @@ import { CancelJobButton, RevalidateButton } from "./job-actions";
 import { NeedsCard } from "./needs-card";
 import { isActiveJob, useJob, useJobResult, useReport } from "./queries";
 import { RetestCard } from "./retest-card";
+import { OlderRunBanner, RUN_PARAM, RunHistoryCard } from "./run-history";
 import {
   AttemptsCard,
   ClosestPlanCard,
@@ -25,36 +27,43 @@ import { ErrorText, Muted } from "./ui";
 
 type Report = Schemas["ReportDetail"];
 type Job = Schemas["JobOut"];
+type JobBrief = Schemas["JobBrief"];
+
+/** 실행 이력에서 고른 실행과 최신 실행. 이력 카드와 "이전 실행 보는 중" 안내에 쓴다. */
+type Runs = { shown: Job; latest: JobBrief };
 
 const NOT_REPRODUCED_VERDICTS = ["not_reproduced", "inconclusive"];
 
 export function ReportDetail({ reportId }: { reportId: string }) {
   const report = useReport(reportId);
+  const runParam = useSearchParams().get(RUN_PARAM);
 
   if (report.isPending) return <DetailSkeleton />;
   if (report.isError) return <ReportError error={report.error} />;
 
   const latest = report.data.latest_job;
   if (!latest) return <Body report={report.data} repro={null} retest={null} />;
-  return <WithLatestJob report={report.data} jobId={latest.id} />;
+  // ?run=<id>로 이력의 실행을 고른다. 없으면 최신 실행.
+  return <WithJob report={report.data} jobId={runParam ?? latest.id} latest={latest} />;
 }
 
-/** 최근 실행이 수정 확인(retest)이면, 화면은 그 기준이 된 재현 실행을 중심으로 그린다. */
-function WithLatestJob({ report, jobId }: { report: Report; jobId: string }) {
+/** 고른 실행이 수정 확인(retest)이면, 화면은 그 기준이 된 재현 실행을 중심으로 그린다. */
+function WithJob({ report, jobId, latest }: { report: Report; jobId: string; latest: JobBrief }) {
   const job = useJob(report.id, jobId);
   if (job.isPending) return <DetailSkeleton />;
   if (job.isError) return <ErrorText error={job.error} prefix="재현 실행을 불러오지 못했어요." />;
+  const runs = { shown: job.data, latest };
   if (job.data.kind === "retest" && job.data.baseline_job_id) {
-    return <WithBaseline report={report} baselineId={job.data.baseline_job_id} retest={job.data} />;
+    return <WithBaseline report={report} baselineId={job.data.baseline_job_id} retest={job.data} runs={runs} />;
   }
-  return <Body report={report} repro={job.data} retest={null} />;
+  return <Body report={report} repro={job.data} retest={null} runs={runs} />;
 }
 
-function WithBaseline({ report, baselineId, retest }: { report: Report; baselineId: string; retest: Job }) {
+function WithBaseline({ report, baselineId, retest, runs }: { report: Report; baselineId: string; retest: Job; runs: Runs }) {
   const baseline = useJob(report.id, baselineId);
   if (baseline.isPending) return <DetailSkeleton />;
   if (baseline.isError) return <ErrorText error={baseline.error} prefix="재현 실행을 불러오지 못했어요." />;
-  return <Body report={report} repro={baseline.data} retest={retest} />;
+  return <Body report={report} repro={baseline.data} retest={retest} runs={runs} />;
 }
 
 type Variant = "reproduced" | "not-reproduced" | "stopped" | "pending";
@@ -70,21 +79,36 @@ function variantOf(job: Job | null): Variant {
   return "pending";
 }
 
-function Body({ report, repro, retest }: { report: Report; repro: Job | null; retest: Job | null }) {
+function Body({
+  report,
+  repro,
+  retest,
+  runs,
+}: {
+  report: Report;
+  repro: Job | null;
+  retest: Job | null;
+  runs?: Runs;
+}) {
   const variant = variantOf(repro);
   // 지금 돌고 있거나 가장 최근인 실행. 취소 버튼은 이 실행에 붙는다.
   const current = retest ?? repro;
+  const older = runs && runs.shown.id !== runs.latest.id;
+  const history = runs && <RunHistoryCard reportId={report.id} shownId={runs.shown.id} latestId={runs.latest.id} />;
 
   return (
     <div className="flex flex-col gap-8">
       <Header report={report} current={current} variant={variant} />
-      {repro && variant === "stopped" ? (
-        <StoppedLayout report={report} job={repro} />
-      ) : repro && (variant === "reproduced" || variant === "not-reproduced") ? (
-        <JobLayout report={report} repro={repro} retest={retest} variant={variant} />
-      ) : (
-        <PendingLayout report={report} job={repro} />
-      )}
+      <div className="flex flex-col gap-5">
+        {older && <OlderRunBanner shown={runs.shown} latest={runs.latest} />}
+        {repro && variant === "stopped" ? (
+          <StoppedLayout report={report} job={repro} history={history} />
+        ) : repro && (variant === "reproduced" || variant === "not-reproduced") ? (
+          <JobLayout report={report} repro={repro} retest={retest} variant={variant} history={history} older={!!older} />
+        ) : (
+          <PendingLayout report={report} job={repro} history={history} />
+        )}
+      </div>
     </div>
   );
 }
@@ -142,11 +166,16 @@ function JobLayout({
   repro,
   retest,
   variant,
+  history,
+  older,
 }: {
   report: Report;
   repro: Job;
   retest: Job | null;
   variant: Exclude<Variant, "pending" | "stopped">;
+  history: React.ReactNode;
+  /** 이력에서 고른 지난 실행. 그 실행의 질문에 답하면 지금 흐름과 엇갈리므로 답변 칸을 숨긴다. */
+  older: boolean;
 }) {
   const result = useJobResult(repro.id);
   const steps = result.data?.report?.scenario?.steps ?? [];
@@ -173,6 +202,7 @@ function JobLayout({
         side={
           <>
             <ProgressCard report={report} job={repro} />
+            {history}
             <LikelyConditionCard reportNumber={report.number} job={repro} steps={steps} />
             <AssignmentCard report={report} />
           </>
@@ -185,7 +215,7 @@ function JobLayout({
     <Columns
       main={
         <>
-          <NeedsCard reportId={report.id} programId={report.program_id} job={repro} />
+          {!older && <NeedsCard reportId={report.id} programId={report.program_id} job={repro} />}
           {resultError}
           <AttemptsCard attempts={attempts} stepCount={steps.length} reproduced={false} />
           <ClosestPlanCard reportId={report.id} attempts={attempts} />
@@ -195,6 +225,7 @@ function JobLayout({
         <>
           <EvidenceCard report={report} compact />
           <LogEstimateCard report={report} />
+          {history}
           <AssignmentCard report={report} />
         </>
       }
@@ -202,7 +233,7 @@ function JobLayout({
   );
 }
 
-function StoppedLayout({ report, job }: { report: Report; job: Job }) {
+function StoppedLayout({ report, job, history }: { report: Report; job: Job; history: React.ReactNode }) {
   return (
     <Columns
       main={<StopCard report={report} job={job} />}
@@ -210,6 +241,7 @@ function StoppedLayout({ report, job }: { report: Report; job: Job }) {
         <>
           <EvidenceCard report={report} compact />
           <LogEstimateCard report={report} />
+          {history}
           <AssignmentCard report={report} />
         </>
       }
@@ -217,7 +249,7 @@ function StoppedLayout({ report, job }: { report: Report; job: Job }) {
   );
 }
 
-function PendingLayout({ report, job }: { report: Report; job: Job | null }) {
+function PendingLayout({ report, job, history }: { report: Report; job: Job | null; history: React.ReactNode }) {
   return (
     <Columns
       main={
@@ -233,6 +265,7 @@ function PendingLayout({ report, job }: { report: Report; job: Job | null }) {
       side={
         <>
           <ProgressCard report={report} job={job ?? undefined} />
+          {history}
           <AssignmentCard report={report} />
         </>
       }

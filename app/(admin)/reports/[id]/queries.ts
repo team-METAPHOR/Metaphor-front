@@ -10,6 +10,7 @@ type EventList = Schemas["EventList"];
 type JobResult = Schemas["JobResult"];
 type Handoff = Schemas["DeveloperHandoff"];
 type ArtifactList = Schemas["ArtifactList"];
+type JobList = Schemas["JobList"];
 
 const POLL_MS = 3_000;
 const HANDOFF_POLL_MS = 5_000;
@@ -17,6 +18,7 @@ const HANDOFF_POLL_MS = 5_000;
 export const reportKeys = {
   report: (reportId: string) => ["report", reportId] as const,
   handoff: (reportId: string) => ["report", reportId, "handoff"] as const,
+  jobs: (reportId: string) => ["report", reportId, "jobs"] as const,
   job: (jobId: string) => ["validation-job", jobId] as const,
   events: (jobId: string) => ["validation-job", jobId, "events"] as const,
   result: (jobId: string) => ["validation-job", jobId, "result"] as const,
@@ -44,10 +46,22 @@ export function useReport(reportId: string) {
   });
 }
 
+/** 신고의 모든 실행(최신순). 최근 100건까지. 실행 중인 것이 있으면 3초마다 다시 받는다. */
+export function useReportJobs(reportId: string) {
+  return useQuery({
+    queryKey: reportKeys.jobs(reportId),
+    queryFn: ({ signal }) =>
+      api<JobList>(`/reports/${encodeURIComponent(reportId)}/validation-jobs?limit=100`, { signal }),
+    retry: retryUnlessDenied,
+    refetchInterval: (query) => (query.state.data?.items.some((job) => isActiveJob(job.status)) ? POLL_MS : false),
+  });
+}
+
 /** job이 끝나는 순간 결과, 분석, artifact, 신고(latest_job 요약)를 다시 받는다. */
 function invalidateFinishedJob(client: QueryClient, reportId: string, jobId: string) {
   void client.invalidateQueries({ queryKey: reportKeys.report(reportId), exact: true });
   void client.invalidateQueries({ queryKey: reportKeys.handoff(reportId) });
+  void client.invalidateQueries({ queryKey: reportKeys.jobs(reportId) });
   void client.invalidateQueries({ queryKey: reportKeys.result(jobId) });
   void client.invalidateQueries({ queryKey: reportKeys.artifacts(jobId) });
   void client.invalidateQueries({ queryKey: reportKeys.events(jobId) });
