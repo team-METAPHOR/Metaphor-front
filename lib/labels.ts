@@ -15,12 +15,27 @@ function lookup(table: Record<string, Entry>, empty: Entry): Lookup {
 
 const none: Entry = { label: "-", tone: "neutral" };
 
+/** 처리 상태: 사람이 정한다. closed는 재시험에서 재현되지 않으면 서버가 자동으로 바꾼다. */
 export const workflowStatus = lookup(
   {
-    received: { label: "접수", tone: "info" },
-    in_review: { label: "검토 중", tone: "progress" },
-    accepted: { label: "수용", tone: "success" },
-    closed: { label: "종료", tone: "neutral" },
+    received: { label: "신규", tone: "info" },
+    fixing: { label: "수정 중", tone: "warning" },
+    dismissed: { label: "버그 아님·중복", tone: "neutral" },
+    closed: { label: "마감", tone: "success" },
+  },
+  none,
+);
+
+/** 진행 단계: 서버가 처리 상태와 최신 검증으로 계산한다. */
+export const progress = lookup(
+  {
+    new: { label: "신규 신고", tone: "info" },
+    reproducing: { label: "재현 중", tone: "progress" },
+    reproduced: { label: "재현 완료", tone: "danger" },
+    triaged: { label: "재현 완료(재현 안 됨)", tone: "neutral" },
+    fixing: { label: "버그 수정 중", tone: "warning" },
+    dismissed: { label: "버그 아님·중복", tone: "neutral" },
+    closed: { label: "마감", tone: "success" },
   },
   none,
 );

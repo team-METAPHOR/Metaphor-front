@@ -5,8 +5,14 @@
 /** 조직 내 역할. */
 export type Role = "developer" | "reviewer" | "admin";
 
-/** 처리 상태: 사람이 결정한다. */
-export type WorkflowStatus = "received" | "in_review" | "accepted" | "closed";
+/** 처리 상태: 사람이 결정한다. closed는 재시험 통과 시 서버만 바꾼다. */
+export type WorkflowStatus = "received" | "fixing" | "dismissed" | "closed";
+
+/** 사람이 바꿀 수 있는 처리 상태(PATCH /reports/{id}/workflow). */
+export const SETTABLE_WORKFLOW_STATUSES = ["received", "fixing", "dismissed"] as const;
+
+/** 진행 단계: 처리 상태와 최신 job으로 서버가 계산한다. */
+export type Progress = "new" | "reproducing" | "reproduced" | "triaged" | "fixing" | "dismissed" | "closed";
 
 /** 검증 job 실행 상태. */
 export type JobStatus =

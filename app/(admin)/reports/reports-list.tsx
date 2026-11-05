@@ -4,7 +4,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { JobStatusBadge, VerdictBadge, WorkflowBadge } from "@/components/badge";
+import { JobStatusBadge, ProgressBadge, VerdictBadge } from "@/components/badge";
 import { ApiError, api, type Schemas } from "@/lib/api";
 import * as labels from "@/lib/labels";
 
@@ -27,10 +27,11 @@ export function ReportsList() {
   const searchParams = useSearchParams();
   const programId = searchParams.get("program_id") ?? "";
   const source = searchParams.get("source") ?? "";
+  const assignee = searchParams.get("assignee") === "me" ? "me" : "";
 
   const programs = useQuery({ queryKey: ["programs"], queryFn: () => api<ProgramList>("/programs") });
 
-  function setFilter(name: "program_id" | "source", value: string) {
+  function setFilter(name: "program_id" | "source" | "assignee", value: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(name, value);
     else params.delete(name);
@@ -71,12 +72,24 @@ export function ReportsList() {
             ))}
           </select>
         </label>
+        <label className="flex flex-col gap-1 text-sm">
+          <span className="text-muted">담당자</span>
+          <select
+            value={assignee}
+            onChange={(e) => setFilter("assignee", e.target.value)}
+            className="min-w-32 rounded-lg border border-border bg-surface px-3 py-2"
+          >
+            <option value="">전체</option>
+            <option value="me">내 담당</option>
+          </select>
+        </label>
         {programs.error && <p className="text-sm text-red-600">사이트 목록을 불러오지 못했어요.</p>}
       </div>
       <ReportsTable
-        key={`${programId}|${source}`}
+        key={`${programId}|${source}|${assignee}`}
         programId={programId}
         source={source}
+        assignee={assignee}
         programNames={new Map(programs.data?.items.map((p) => [p.id, p.name]))}
       />
     </>
@@ -86,10 +99,12 @@ export function ReportsList() {
 function ReportsTable({
   programId,
   source,
+  assignee,
   programNames,
 }: {
   programId: string;
   source: string;
+  assignee: string;
   programNames: Map<string, string>;
 }) {
   const router = useRouter();
@@ -98,12 +113,13 @@ function ReportsTable({
   const cursor = cursors[cursors.length - 1];
 
   const reports = useQuery({
-    queryKey: ["reports", { programId, source, cursor }],
+    queryKey: ["reports", { programId, source, assignee, cursor }],
     queryFn: () => {
       const params = new URLSearchParams({ limit: String(PAGE_SIZE) });
       if (cursor) params.set("cursor", cursor);
       if (programId) params.set("program_id", programId);
       if (source) params.set("source", source);
+      if (assignee) params.set("assignee", assignee);
       return api<ReportList>(`/reports?${params}`);
     },
     placeholderData: keepPreviousData,
@@ -121,10 +137,12 @@ function ReportsTable({
         <table className="w-full whitespace-nowrap text-left text-sm">
           <thead className="border-b border-border text-muted">
             <tr>
+              <th className="px-4 py-3 font-medium">번호</th>
               <th className="px-4 py-3 font-medium">제목</th>
               <th className="px-4 py-3 font-medium">사이트</th>
               <th className="px-4 py-3 font-medium">유형</th>
-              <th className="px-4 py-3 font-medium">처리 상태</th>
+              <th className="px-4 py-3 font-medium">진행 단계</th>
+              <th className="px-4 py-3 font-medium">담당자</th>
               <th className="px-4 py-3 font-medium">실행 상태</th>
               <th className="px-4 py-3 font-medium">재현 판정</th>
               <th className="px-4 py-3 font-medium">중복</th>
@@ -134,7 +152,7 @@ function ReportsTable({
           <tbody className={reports.isPlaceholderData ? "opacity-60" : undefined}>
             {items.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-muted">
+                <td colSpan={10} className="px-4 py-12 text-center text-muted">
                   신고가 없어요.
                 </td>
               </tr>
@@ -145,6 +163,7 @@ function ReportsTable({
                   onClick={() => router.push(`/reports/${report.id}`)}
                   className="cursor-pointer border-b border-border last:border-0 hover:bg-background"
                 >
+                  <td className="px-4 py-3 font-mono text-xs text-muted">BUG-{report.number}</td>
                   <td className="max-w-80 px-4 py-3">
                     <Link
                       href={`/reports/${report.id}`}
@@ -159,7 +178,10 @@ function ReportsTable({
                   </td>
                   <td className="px-4 py-3">{labels.errorType(report.error_type).label}</td>
                   <td className="px-4 py-3">
-                    <WorkflowBadge value={report.workflow_status} />
+                    <ProgressBadge value={report.progress} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <AssigneeName assignee={report.assignee} />
                   </td>
                   <td className="px-4 py-3">
                     <JobStatusBadge value={report.latest_job?.status} />
@@ -210,4 +232,11 @@ function ErrorMessage({ error }: { error: Error }) {
       )}
     </div>
   );
+}
+
+/** 회사를 나간 담당자는 서버가 이름과 이메일을 가린다(active: false). */
+export function AssigneeName({ assignee }: { assignee: Schemas["Assignee"] | null }) {
+  if (!assignee) return <span className="text-muted">-</span>;
+  if (!assignee.active) return <span className="text-muted">(나간 멤버)</span>;
+  return <span>{assignee.display_name ?? assignee.email}</span>;
 }

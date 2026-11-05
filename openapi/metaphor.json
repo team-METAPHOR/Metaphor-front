@@ -772,6 +772,59 @@
         }
       }
     },
+    "/api/v1/orgs/{org_id}/reports/{number}": {
+      "get": {
+        "tags": [
+          "orgs"
+        ],
+        "summary": "Get Report By Number",
+        "description": "Report detail by the org's human number (BUG-<number>); members only, 404 otherwise.",
+        "operationId": "get_report_by_number_api_v1_orgs__org_id__reports__number__get",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Org Id"
+            }
+          },
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "Number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/programs": {
       "get": {
         "tags": [
@@ -1270,6 +1323,25 @@
               ],
               "title": "Program Id"
             }
+          },
+          {
+            "name": "assignee",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "\"me\" or a user id",
+              "title": "Assignee"
+            },
+            "description": "\"me\" or a user id"
           }
         ],
         "responses": {
@@ -1314,6 +1386,110 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/{report_id}/workflow": {
+      "patch": {
+        "tags": [
+          "reports"
+        ],
+        "summary": "Set Workflow Status",
+        "operationId": "set_workflow_status_api_v1_reports__report_id__workflow_patch",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/{report_id}/assignee": {
+      "patch": {
+        "tags": [
+          "reports"
+        ],
+        "summary": "Set Assignee",
+        "operationId": "set_assignee_api_v1_reports__report_id__assignee_patch",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssigneeUpdate"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1853,6 +2029,69 @@
           "items"
         ],
         "title": "ArtifactList"
+      },
+      "Assignee": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "display_name",
+          "email",
+          "active"
+        ],
+        "title": "Assignee"
+      },
+      "AssigneeUpdate": {
+        "properties": {
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "user_id"
+        ],
+        "title": "AssigneeUpdate"
       },
       "AutoDetect": {
         "properties": {
@@ -3437,6 +3676,10 @@
             "type": "string",
             "title": "Program Id"
           },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
           "title": {
             "type": "string",
             "title": "Title"
@@ -3460,6 +3703,41 @@
           "workflow_status": {
             "type": "string",
             "title": "Workflow Status"
+          },
+          "progress": {
+            "type": "string",
+            "enum": [
+              "new",
+              "reproducing",
+              "reproduced",
+              "triaged",
+              "fixing",
+              "dismissed",
+              "closed"
+            ],
+            "title": "Progress"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "assignee": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Assignee"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "latest_job": {
             "anyOf": [
@@ -3529,12 +3807,16 @@
         "required": [
           "id",
           "program_id",
+          "number",
           "title",
           "source",
           "error_type",
           "origin_kind",
           "duplicate_count",
           "workflow_status",
+          "progress",
+          "closed_at",
+          "assignee",
           "latest_job",
           "created_at",
           "target_url",
@@ -3555,6 +3837,10 @@
           "program_id": {
             "type": "string",
             "title": "Program Id"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
           },
           "title": {
             "type": "string",
@@ -3580,6 +3866,41 @@
             "type": "string",
             "title": "Workflow Status"
           },
+          "progress": {
+            "type": "string",
+            "enum": [
+              "new",
+              "reproducing",
+              "reproduced",
+              "triaged",
+              "fixing",
+              "dismissed",
+              "closed"
+            ],
+            "title": "Progress"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "assignee": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Assignee"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "latest_job": {
             "anyOf": [
               {
@@ -3600,12 +3921,16 @@
         "required": [
           "id",
           "program_id",
+          "number",
           "title",
           "source",
           "error_type",
           "origin_kind",
           "duplicate_count",
           "workflow_status",
+          "progress",
+          "closed_at",
+          "assignee",
           "latest_job",
           "created_at"
         ],
@@ -4105,6 +4430,25 @@
           "updated_at"
         ],
         "title": "WidgetSettingsResponse"
+      },
+      "WorkflowUpdate": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "received",
+              "fixing",
+              "dismissed"
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "WorkflowUpdate"
       }
     }
   }

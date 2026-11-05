@@ -262,6 +262,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orgs/{org_id}/reports/{number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Report By Number
+         * @description Report detail by the org's human number (BUG-<number>); members only, 404 otherwise.
+         */
+        get: operations["get_report_by_number_api_v1_orgs__org_id__reports__number__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/programs": {
         parameters: {
             query?: never;
@@ -400,6 +420,40 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}/workflow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set Workflow Status */
+        patch: operations["set_workflow_status_api_v1_reports__report_id__workflow_patch"];
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}/assignee": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set Assignee */
+        patch: operations["set_assignee_api_v1_reports__report_id__assignee_patch"];
         trace?: never;
     };
     "/api/v1/reports/{report_id}/clarifications": {
@@ -587,6 +641,22 @@ export interface components {
         ArtifactList: {
             /** Items */
             items: components["schemas"]["ArtifactItem"][];
+        };
+        /** Assignee */
+        Assignee: {
+            /** Id */
+            id: string;
+            /** Display Name */
+            display_name: string | null;
+            /** Email */
+            email: string | null;
+            /** Active */
+            active: boolean;
+        };
+        /** AssigneeUpdate */
+        AssigneeUpdate: {
+            /** User Id */
+            user_id: string | null;
         };
         /** AutoDetect */
         AutoDetect: {
@@ -1166,6 +1236,8 @@ export interface components {
             id: string;
             /** Program Id */
             program_id: string;
+            /** Number */
+            number: number;
             /** Title */
             title: string;
             /** Source */
@@ -1178,6 +1250,14 @@ export interface components {
             duplicate_count: number;
             /** Workflow Status */
             workflow_status: string;
+            /**
+             * Progress
+             * @enum {string}
+             */
+            progress: "new" | "reproducing" | "reproduced" | "triaged" | "fixing" | "dismissed" | "closed";
+            /** Closed At */
+            closed_at: string | null;
+            assignee: components["schemas"]["Assignee"] | null;
             latest_job: components["schemas"]["JobBrief"] | null;
             /**
              * Created At
@@ -1212,6 +1292,8 @@ export interface components {
             id: string;
             /** Program Id */
             program_id: string;
+            /** Number */
+            number: number;
             /** Title */
             title: string;
             /** Source */
@@ -1224,6 +1306,14 @@ export interface components {
             duplicate_count: number;
             /** Workflow Status */
             workflow_status: string;
+            /**
+             * Progress
+             * @enum {string}
+             */
+            progress: "new" | "reproducing" | "reproduced" | "triaged" | "fixing" | "dismissed" | "closed";
+            /** Closed At */
+            closed_at: string | null;
+            assignee: components["schemas"]["Assignee"] | null;
             latest_job: components["schemas"]["JobBrief"] | null;
             /**
              * Created At
@@ -1379,6 +1469,14 @@ export interface components {
             live_screenshot_enabled: boolean;
             /** Updated At */
             updated_at: string | null;
+        };
+        /** WorkflowUpdate */
+        WorkflowUpdate: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "received" | "fixing" | "dismissed";
         };
     };
     responses: never;
@@ -1939,6 +2037,38 @@ export interface operations {
             };
         };
     };
+    get_report_by_number_api_v1_orgs__org_id__reports__number__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_programs_api_v1_programs_get: {
         parameters: {
             query?: never;
@@ -2224,6 +2354,8 @@ export interface operations {
                 cursor?: string | null;
                 source?: ("platform" | "widget") | null;
                 program_id?: string | null;
+                /** @description "me" or a user id */
+                assignee?: string | null;
             };
             header?: never;
             path?: never;
@@ -2296,6 +2428,76 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_workflow_status_api_v1_reports__report_id__workflow_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkflowUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_assignee_api_v1_reports__report_id__assignee_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssigneeUpdate"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { JobStatusBadge, VerdictBadge, WorkflowBadge } from "@/components/badge";
+import { JobStatusBadge, ProgressBadge, VerdictBadge } from "@/components/badge";
 import { ApiError, type Schemas } from "@/lib/api";
 import { AnalysisSection } from "./analysis-section";
 import { ClarificationSection } from "./clarification-section";
@@ -12,6 +12,7 @@ import { OverviewSection } from "./overview-section";
 import { isActiveJob, useJob, useJobResult, useReport } from "./queries";
 import { ResultSection } from "./result-section";
 import { ScenarioSection } from "./scenario-section";
+import { WorkflowSection } from "./workflow-section";
 import { ErrorText, Muted, Section } from "./ui";
 
 type Report = Schemas["ReportDetail"];
@@ -40,7 +41,7 @@ export function ReportDetail({ reportId }: { reportId: string }) {
           )}
         </div>
         <div className="min-w-0 space-y-6">
-          <WorkflowSection status={report.data.workflow_status} />
+          <WorkflowSection report={report.data} />
           <EnvironmentSection report={report.data} />
         </div>
       </div>
@@ -82,10 +83,11 @@ function Header({ report, jobId }: { report: Report; jobId: string | null }) {
       <BackLink />
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
+          <p className="font-mono text-sm text-muted">BUG-{report.number}</p>
           <h1 className="text-2xl font-bold break-words">{report.title}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted">
             <span className="flex items-center gap-1">
-              처리 <WorkflowBadge value={report.workflow_status} />
+              단계 <ProgressBadge value={report.progress} />
             </span>
             {jobId ? (
               <HeaderJobBadges jobId={jobId} reportId={report.id} />
@@ -168,13 +170,4 @@ function PendingQuestions({ reportId, jobId }: { reportId: string; jobId: string
   const job = useJob(reportId, jobId);
   if (job.data?.status !== "needs_info" || job.data.questions.length === 0) return null;
   return <ClarificationSection reportId={reportId} jobId={jobId} questions={job.data.questions} />;
-}
-
-function WorkflowSection({ status }: { status: string }) {
-  return (
-    <Section title="처리 상태">
-      <WorkflowBadge value={status} />
-      <p className="mt-3 text-xs text-muted">처리 상태 변경은 백엔드 지원 후 제공돼요.</p>
-    </Section>
-  );
 }
