@@ -19,6 +19,12 @@ type WidgetSettings = Schemas["WidgetSettingsResponse"];
 
 export type SiteTab = "sdk" | "repro" | "site";
 
+const NO_SITE_HINT: Record<SiteTab, string> = {
+  sdk: "설치 코드와 위젯 설정이 여기에 나와요.",
+  repro: "재현 환경을 설정할 수 있어요.",
+  site: "사이트 정보와 도메인 소유 확인이 여기에 나와요.",
+};
+
 /** 사이트 탭(SDK와 설치, 재현 환경, 사이트 정보) 공통: 위쪽 사이트 선택 바와 선택된 사이트의 내용. */
 export function SiteTabs({ tab }: { tab: SiteTab }) {
   const router = useRouter();
@@ -41,13 +47,20 @@ export function SiteTabs({ tab }: { tab: SiteTab }) {
   if (items.length === 0 || creating) {
     if (!isAdmin) return <p className="text-sm text-muted">등록된 사이트가 없어요. 관리자에게 사이트 등록을 요청하세요.</p>;
     return (
-      <CreateProgramCard
-        onCreated={(program) => {
-          setCreating(false);
-          select(program.id);
-        }}
-        onCancel={items.length > 0 ? () => setCreating(false) : undefined}
-      />
+      <>
+        {items.length === 0 && (
+          <p className="rounded-[10px] bg-surface-inset px-4 py-3 text-[13px] leading-5 text-subtle">
+            아직 등록된 사이트가 없어요. 사이트를 먼저 등록하면 {NO_SITE_HINT[tab]}
+          </p>
+        )}
+        <CreateProgramCard
+          onCreated={(program) => {
+            setCreating(false);
+            select(program.id);
+          }}
+          onCancel={items.length > 0 ? () => setCreating(false) : undefined}
+        />
+      </>
     );
   }
 

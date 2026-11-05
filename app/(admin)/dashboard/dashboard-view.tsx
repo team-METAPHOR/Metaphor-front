@@ -49,7 +49,7 @@ export function DashboardView() {
       </Block>
 
       <Block title="현재 확인 사항">
-        <div className="flex flex-col gap-4 rounded-xl bg-surface px-3 py-5">
+        <div className="flex flex-col gap-4 rounded-xl border border-edge bg-surface px-3 py-5">
           {stats.attention.length === 0 ? (
             <p className="px-3 py-2.5 text-lg text-subtle">지금 확인할 제보가 없어요.</p>
           ) : (
@@ -97,7 +97,7 @@ function Block({ title, children }: { title: React.ReactNode; children: React.Re
 
 function MetricCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex h-40 flex-col justify-between rounded-xl bg-surface px-6 py-4">
+    <div className="flex h-40 flex-col justify-between rounded-xl border border-edge bg-surface px-6 py-4">
       <span className="text-xl font-medium text-body">{label}</span>
       <span className="border-t-2 border-line" aria-hidden />
       <span className="leading-none">{children}</span>

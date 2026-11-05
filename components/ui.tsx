@@ -31,14 +31,27 @@ export function Icon({ name, size, className }: { name: string; size: number; cl
     return (
       <span
         aria-hidden
-        className={`inline-block shrink-0 ${tint} ${className ?? ""}`}
+        className={`block shrink-0 ${tint} ${className ?? ""}`}
         style={{ width: size, height: size, mask, WebkitMask: mask }}
       />
     );
   }
   return (
     // eslint-disable-next-line @next/next/no-img-element -- 크기가 고정된 정적 SVG라 최적화가 필요 없다.
-    <img src={`/icons/${name}.svg`} alt="" width={size} height={size} className={`shrink-0 ${className ?? ""}`} />
+    <img src={`/icons/${name}.svg`} alt="" width={size} height={size} className={`block shrink-0 ${className ?? ""}`} />
+  );
+}
+
+/** SPEAR 로고. 테마마다 읽기 좋은 초록(--logo)으로 칠하려고 마스크로 그린다. */
+export function Logo() {
+  const mask = "url(/icons/spear-logo.svg) center / contain no-repeat";
+  return (
+    <span
+      role="img"
+      aria-label="SPEAR"
+      className="block bg-logo"
+      style={{ width: 101, height: 22, mask, WebkitMask: mask }}
+    />
   );
 }
 
@@ -68,7 +81,7 @@ export function Card({
   children?: React.ReactNode;
 }) {
   const border =
-    tone === "success" ? "border border-primary/45" : tone === "warning" ? "border border-warning/55" : "";
+    tone === "success" ? "border border-primary/45" : tone === "warning" ? "border border-warning/55" : "border border-edge";
   return (
     <section className={`flex min-w-0 flex-col gap-4 rounded-xl bg-surface px-6 pt-[22px] pb-6 ${border} ${className ?? ""}`}>
       <div className="flex items-center justify-between gap-4">

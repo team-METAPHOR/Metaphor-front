@@ -47,7 +47,7 @@ export function SdkSnippet({
 
       {key ? (
         <>
-          <pre className="overflow-x-auto rounded-lg bg-sidebar p-4 font-mono text-xs leading-5 text-sidebar-foreground">
+          <pre className="overflow-x-auto rounded-lg border border-border bg-code p-4 font-mono text-xs leading-5 text-body">
             {snippet(key)}
           </pre>
           <p className="mt-2 text-xs text-muted">
@@ -130,7 +130,7 @@ function RotateKey({ programId, isAdmin, hasKey }: { programId: string; isAdmin:
             type="button"
             disabled={rotate.isPending}
             onClick={() => rotate.mutate()}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+            className="rounded-lg bg-danger px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
           >
             {rotate.isPending ? "재발급 중…" : "재발급"}
           </button>

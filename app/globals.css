@@ -79,6 +79,8 @@
   --sidebar-border: #2c2c2c;
   --sidebar-foreground: #f8f8f8;
   --sidebar-active: #383838;
+  --edge: transparent;
+  --logo: #00dc7d;
 
   color-scheme: dark;
 }
@@ -111,6 +113,8 @@
   --sidebar-border: #ececec;
   --sidebar-foreground: #1e1e1e;
   --sidebar-active: #ececec;
+  --edge: #e4e4e4;
+  --logo: #00a862;
 
   color-scheme: light;
 }
@@ -143,6 +147,9 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-active: var(--sidebar-active);
+  /* 흰 배경 위 흰 카드를 나누는 선. 다크에서는 보이지 않는다. */
+  --color-edge: var(--edge);
+  --color-logo: var(--logo);
   --font-sans: "Paperlogy", system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 }
@@ -157,3 +164,4 @@ body {
 .font-mono {
   letter-spacing: 0;
 }
+
