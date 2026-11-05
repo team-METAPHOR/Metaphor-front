@@ -122,16 +122,54 @@ export const source = lookup(
   none,
 );
 
-/** 서버가 붙이는 필요 조치(required_actions) 코드 → 사람이 할 일. 모르는 코드는 서버 메시지를 쓴다. */
-const REQUIRED_ACTIONS: Record<string, string> = {
-  CHECK_TEST_ACCOUNT: "테스트 계정으로 로그인하지 못했어요. 계정을 확인하세요.",
-  TEST_ACCOUNT_REQUIRED: "테스트 계정을 다시 저장해야 해요.",
-  USE_HTTPS_FOR_CREDENTIALS: "로그인이 필요한 재현은 HTTPS 주소에서만 할 수 있어요.",
-  CHECK_TARGET_URL: "재현 대상 주소가 허용 범위를 벗어났어요. 사이트 설정을 확인하세요.",
+/**
+ * 서버가 붙이는 필요 조치(required_actions) 코드 → 짧은 이름과 사람이 할 일.
+ * Metaphor-back app/services/report_actions.py의 ACTION_MESSAGES 기준. 모르는 코드는 서버 메시지를 쓴다.
+ */
+const REQUIRED_ACTIONS: Record<string, { title: string; text: string }> = {
+  VERIFY_ORIGIN: { title: "도메인 소유 확인", text: "테스트 대상 도메인의 소유 확인이 필요해요." },
+  WAIT_FOR_QUOTA: { title: "실행 한도 대기", text: "오늘 실행 한도에 도달했어요. 한도가 풀리면 다시 시도해요." },
+  TEST_ACCOUNT_REQUIRED: { title: "테스트 계정 다시 저장", text: "저장된 테스트 계정을 쓸 수 없어요. 계정을 다시 저장하세요." },
+  CHECK_TEST_ACCOUNT: { title: "테스트 계정 확인", text: "테스트 계정으로 로그인하지 못했어요. 계정과 로그인 설정을 확인하세요." },
+  CHECK_TARGET_URL: { title: "재현 대상 주소 확인", text: "재현 대상 주소가 허용 범위를 벗어났거나 열리지 않아요. 사이트 설정을 확인하세요." },
+  USE_HTTPS_FOR_CREDENTIALS: { title: "HTTPS 주소 사용", text: "로그인이 필요한 재현은 HTTPS 주소에서만 할 수 있어요." },
+  ANSWER_QUESTIONS: { title: "질문에 답하기", text: "AI의 추가 질문에 답하면 다시 재현해요." },
+  WAIT_FOR_PROVIDER: { title: "AI 사용량 제한", text: "AI 사용량 제한이 풀린 뒤 다시 재현하세요." },
+  RETRY_PROVIDER_LATER: { title: "잠시 후 다시 재현", text: "AI 응답이 일시적으로 실패했어요. 잠시 후 다시 재현하세요." },
+  OPERATOR_CHECK_PROVIDER: { title: "운영자 확인 필요", text: "AI 공급자 설정 문제로 멈췄어요. 운영자에게 문의하세요." },
 };
 
 export function requiredAction(action: { code: string; message: string }): string {
-  return REQUIRED_ACTIONS[action.code] ?? action.message;
+  return REQUIRED_ACTIONS[action.code]?.text ?? action.message;
+}
+
+export function requiredActionTitle(code: string): string {
+  return REQUIRED_ACTIONS[code]?.title ?? "필요한 조치";
+}
+
+/** 작업 error_code(엔진·워커) → 멈춘 이유 한 문장. 모르는 코드는 null. */
+const JOB_ERRORS: [string[], string][] = [
+  [["LOGIN_FAILED"], "테스트 계정으로 로그인하지 못했어요."],
+  [["CREDENTIALS_REQUIRE_HTTPS"], "HTTP 주소에서는 테스트 계정을 쓸 수 없어요."],
+  [
+    ["TEST_ACCOUNT_INVALID", "TEST_ACCOUNT_KEY_MISSING", "TEST_ACCOUNT_KEY_INVALID", "SESSION_SECRET_MISSING", "SESSION_SECRET_INVALID"],
+    "저장된 테스트 계정을 쓸 수 없어요.",
+  ],
+  [["NAVIGATION_FAILED"], "대상 페이지를 열지 못했어요."],
+  [["DNS_FAILED"], "대상 주소를 찾지 못했어요."],
+  [
+    ["ORIGIN_OUT_OF_SCOPE", "PATH_OUT_OF_SCOPE", "PATH_EXCLUDED", "INVALID_URL", "INVALID_HOST", "DESTINATION_BLOCKED", "PRIVATE_DESTINATION_BLOCKED"],
+    "대상 주소가 허용 범위를 벗어났어요.",
+  ],
+  [["ORIGIN_NOT_VERIFIED"], "대상 도메인의 소유 확인이 안 됐어요."],
+  [["MODEL_RATE_LIMITED"], "AI 사용량 제한에 걸렸어요."],
+  [["MODEL_TIMEOUT", "MODEL_UNAVAILABLE", "MODEL_HTTP_ERROR"], "AI 응답이 일시적으로 실패했어요."],
+  [["MODEL_AUTH_FAILED", "MODEL_RESPONSE_TOO_LARGE"], "AI 공급자 설정 문제로 멈췄어요."],
+];
+
+export function jobErrorReason(code: string | null | undefined): string | null {
+  if (!code) return null;
+  return JOB_ERRORS.find(([codes]) => codes.includes(code))?.[1] ?? null;
 }
 
 export const role = lookup(
