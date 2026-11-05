@@ -6,12 +6,9 @@ export const instant = false;
 
 export default function DashboardPage() {
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">대시보드</h1>
-        <p className="mt-1 text-sm text-muted">전체 신고와 AI 재현 결과를 한눈에 봐요.</p>
-      </div>
+    <>
+      <h1 className="sr-only">대시보드</h1>
       <DashboardView />
-    </div>
+    </>
   );
 }
