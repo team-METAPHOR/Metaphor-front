@@ -193,11 +193,13 @@ export function AttemptsCard({
 
 // ---------------------------------------------------------------- 재현 절차
 
-const actionLabel: Record<string, string> = {
+export const actionLabel: Record<string, string> = {
   navigate: "이동",
   click: "클릭",
   fill: "입력",
   assert_text: "확인",
+  reload: "새로고침",
+  back: "뒤로 가기",
 };
 
 /** 복사할 때 쓰는 사람이 읽는 절차 */

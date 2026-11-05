@@ -9,6 +9,7 @@ import { ConditionResultsCard } from "./condition-results";
 import { DiagnosisCard } from "./diagnosis-card";
 import { EvidenceCard, LogEstimateCard } from "./evidence";
 import { CancelJobButton, RevalidateButton } from "./job-actions";
+import { LivePreviewCard } from "./live-preview-card";
 import { TestExportCard, VideoCard } from "./media-cards";
 import { NeedsCard } from "./needs-card";
 import { isActiveJob, isResultExpired, useJob, useJobResult, useReport } from "./queries";
@@ -98,12 +99,15 @@ function Body({
   const current = retest ?? repro;
   const older = runs && runs.shown.id !== runs.latest.id;
   const history = runs && <RunHistoryCard reportId={report.id} shownId={runs.shown.id} latestId={runs.latest.id} />;
+  // 최신 실행이 도는 동안만 실시간 화면을 띄운다. 끝나면 사라지고 기존 결과 카드가 이어받는다.
+  const live = !older && current != null && isActiveJob(current.status);
 
   return (
     <div className="flex flex-col gap-8">
       <Header report={report} current={current} variant={variant} />
       <div className="flex flex-col gap-5">
         {older && <OlderRunBanner shown={runs.shown} latest={runs.latest} />}
+        {live && <LivePreviewCard key={current.id} reportId={report.id} jobId={current.id} />}
         {repro && variant === "stopped" ? (
           <StoppedLayout report={report} job={repro} history={history} />
         ) : repro && (variant === "reproduced" || variant === "not-reproduced") ? (
