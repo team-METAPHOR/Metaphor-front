@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { ApiError } from "@/lib/api";
+import { Section } from "../settings-modal/parts";
 
 export const widgetSettingsKey = (programId: string) => ["programs", programId, "widget-settings"] as const;
 
+/** 설정 모달 안의 묶음. 모달 자체가 상자라서 테두리 없이 제목과 간격으로만 나눈다. */
 export function Card({
   title,
   description,
@@ -16,19 +18,11 @@ export function Card({
   action?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  if (!title) return <section>{children}</section>;
   return (
-    <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-      {(title || action) && (
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div>
-            {title && <h2 className="text-base font-semibold">{title}</h2>}
-            {description && <p className="mt-0.5 text-xs text-muted">{description}</p>}
-          </div>
-          {action}
-        </div>
-      )}
+    <Section title={title} description={description} aside={action}>
       {children}
-    </section>
+    </Section>
   );
 }
 

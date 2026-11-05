@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ApiError, api } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import * as labels from "@/lib/labels";
+import { Card } from "../settings/ui";
 
 const MIN_PASSWORD = 10;
 const MAX_PASSWORD = 256;
@@ -44,9 +45,8 @@ function AccountInfo() {
     ["역할", labels.role(membership.role).label],
   ];
   return (
-    <section className="rounded-2xl border border-border bg-surface p-6">
-      <h2 className="text-lg font-semibold">계정 정보</h2>
-      <dl className="mt-4 grid grid-cols-[6rem_1fr] gap-y-2 text-sm">
+    <Card title="계정 정보">
+      <dl className="grid grid-cols-[6rem_1fr] gap-y-2 text-sm">
         {rows.map(([term, value]) => (
           <div key={term} className="contents">
             <dt className="text-muted">{term}</dt>
@@ -54,7 +54,7 @@ function AccountInfo() {
           </div>
         ))}
       </dl>
-    </section>
+    </Card>
   );
 }
 
@@ -80,10 +80,7 @@ function PasswordForm() {
   });
 
   return (
-    <section className="rounded-2xl border border-border bg-surface p-6">
-      <h2 className="text-lg font-semibold">비밀번호 변경</h2>
-      <p className="mt-1 text-sm text-muted">바꾸면 모든 기기에서 로그아웃되고 다시 로그인해야 해요.</p>
-
+    <Card title="비밀번호 변경" description="바꾸면 모든 기기에서 로그아웃되고 다시 로그인해야 해요.">
       <form
         onSubmit={(event) => {
           event.preventDefault();
@@ -93,7 +90,7 @@ function PasswordForm() {
         {/* 비밀번호 관리자가 어느 계정의 비밀번호인지 알 수 있게 한다. */}
         <input type="text" autoComplete="username" value={user.email} readOnly hidden />
 
-        <label className="mt-6 block text-sm font-medium" htmlFor="current-password">
+        <label className="mt-2 block text-sm font-medium" htmlFor="current-password">
           현재 비밀번호
         </label>
         <input
@@ -156,6 +153,6 @@ function PasswordForm() {
           {change.isPending ? "바꾸는 중…" : change.isSuccess ? "로그인 화면으로 이동 중…" : "비밀번호 변경"}
         </button>
       </form>
-    </section>
+    </Card>
   );
 }

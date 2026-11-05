@@ -210,7 +210,7 @@ function PassedDialog({ job, onClose }: { job: Job; onClose: () => void }) {
           {seconds !== null && <Row label="실행 시간" value={formatClock(seconds)} />}
           <Row label="마감 시각" value={formatDateTime(job.finished_at)} />
         </Inset>
-        <p className="text-xs text-muted">마감된 신고는 제보 목록에서 빠져요.</p>
+        <p className="text-xs text-muted">마감된 제보는 목록에서 빠져요.</p>
         <div className="flex justify-end">
           <button type="button" className={button.primary} autoFocus onClick={() => dialog.current?.close()}>
             확인

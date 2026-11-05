@@ -257,7 +257,7 @@ export function StepsCard({ report, jobId, steps }: { report: Report; jobId: str
           {steps.map((step, index) => (
             <li key={index} className="flex gap-3 whitespace-pre">
               <span className="w-5 shrink-0 text-right text-faint">{index + 1}</span>
-              <span className="w-10 shrink-0 text-subtle">{actionLabel[step.action] ?? step.action}</span>
+              <span className="min-w-14 shrink-0 text-subtle">{actionLabel[step.action] ?? step.action}</span>
               <span>
                 {step.target}
                 {step.value && <span className="text-primary-ink"> &apos;{step.value}&apos;</span>}

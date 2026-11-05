@@ -1,5 +1,7 @@
 // 로그인·회원가입·조직 시작 화면 공용 조각. Figma "Auth · 로그인/회원가입/조직 없음" 기준.
 
+import { Logo } from "./ui";
+
 export const authInput =
   "w-full rounded-lg border border-border bg-background px-3.5 py-[11px] text-[15px] text-body outline-none placeholder:text-faint focus:border-primary aria-invalid:border-danger";
 
@@ -10,10 +12,9 @@ export const authSubmit =
 export function AuthShell({ wide, children }: { wide?: boolean; children: React.ReactNode }) {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-7 px-4 py-12">
-      {/* eslint-disable-next-line @next/next/no-img-element -- 크기가 고정된 정적 SVG 로고 */}
-      <img src="/icons/spear-logo.svg" alt="SPEAR" width={101} height={22} />
+      <Logo />
       <div
-        className={`flex w-full flex-col gap-6 rounded-xl bg-surface px-8 pt-8 pb-7 ${wide ? "max-w-[480px]" : "max-w-[400px]"}`}
+        className={`flex w-full flex-col gap-6 rounded-xl border border-edge bg-surface px-8 pt-8 pb-7 ${wide ? "max-w-[480px]" : "max-w-[400px]"}`}
       >
         {children}
       </div>

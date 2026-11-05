@@ -56,21 +56,6 @@ export function useTheme() {
   return { preference, setPreference };
 }
 
-function subscribeApplied(onChange: () => void) {
-  const observer = new MutationObserver(onChange);
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-  return () => observer.disconnect();
-}
-
-function readApplied(): Theme {
-  return document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
-}
-
-/** 지금 화면에 적용된 테마("시스템"이면 OS 설정을 풀어 쓴 값). */
-export function useAppliedTheme(): Theme {
-  return useSyncExternalStore(subscribeApplied, readApplied, () => "dark");
-}
-
 /**
  * <html data-theme>를 선택값과 맞춘다. 다른 탭에서 바꾼 경우와,
  * "시스템"일 때 OS 설정이 바뀐 경우를 처리한다. Providers에 한 번만 둔다.

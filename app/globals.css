@@ -1,5 +1,49 @@
 @import "tailwindcss";
 
+/* 본문 글꼴: Paperlogy 웹 폰트(눈누 CDN). */
+@font-face {
+  font-family: "Paperlogy";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-3Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Paperlogy";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-4Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Paperlogy";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-5Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Paperlogy";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Paperlogy";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Paperlogy";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 /*
  * 색 토큰. <html data-theme="light|dark">로 고른다(lib/theme.ts).
  * 기본은 다크이고, 라이트 값은 Figma "설정 · 일반 · 라이트" 기준이다.
@@ -35,6 +79,8 @@
   --sidebar-border: #2c2c2c;
   --sidebar-foreground: #f8f8f8;
   --sidebar-active: #383838;
+  --edge: transparent;
+  --logo: #00dc7d;
 
   color-scheme: dark;
 }
@@ -67,6 +113,8 @@
   --sidebar-border: #ececec;
   --sidebar-foreground: #1e1e1e;
   --sidebar-active: #ececec;
+  --edge: #e4e4e4;
+  --logo: #00a862;
 
   color-scheme: light;
 }
@@ -99,7 +147,10 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-active: var(--sidebar-active);
-  --font-sans: var(--font-pretendard), system-ui, sans-serif;
+  /* 흰 배경 위 흰 카드를 나누는 선. 다크에서는 보이지 않는다. */
+  --color-edge: var(--edge);
+  --color-logo: var(--logo);
+  --font-sans: "Paperlogy", system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 }
 
@@ -112,4 +163,29 @@ body {
 /* 코드와 번호는 자간을 줄이지 않는다. */
 .font-mono {
   letter-spacing: 0;
+}
+
+/*
+ * Tailwind v4는 버튼 커서를 기본(default)으로 둔다.
+ * 누를 수 있는 요소는 모두 손가락 커서로, 막힌 요소는 금지 커서로 맞춘다.
+ */
+@layer base {
+  button,
+  [role="button"],
+  select,
+  summary,
+  label[for],
+  label:has(input[type="checkbox"], input[type="radio"], select),
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="file"],
+  input[type="submit"],
+  input[type="button"] {
+    cursor: pointer;
+  }
+
+  :disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
 }

@@ -227,14 +227,14 @@ function ReportError({ error }: { error: unknown }) {
         ← 제보 목록
       </Link>
       {status === 404 ? (
-        <Card title="신고를 찾을 수 없어요" description="삭제됐거나 주소가 잘못됐어요." />
+        <Card title="제보를 찾을 수 없어요" description="삭제됐거나 주소가 잘못됐어요." />
       ) : status === 403 ? (
         <Card
           title="볼 권한이 없어요"
-          description="이 신고가 속한 사이트에 접근 권한이 없어요. 관리자에게 문의하세요."
+          description="이 제보가 속한 사이트에 접근 권한이 없어요. 관리자에게 문의하세요."
         />
       ) : (
-        <ErrorText error={error} prefix="신고를 불러오지 못했어요." />
+        <ErrorText error={error} prefix="제보를 불러오지 못했어요." />
       )}
     </div>
   );

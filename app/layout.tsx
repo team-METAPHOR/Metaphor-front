@@ -1,17 +1,8 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
-import localFont from "next/font/local";
 import { themeScript } from "@/lib/theme-script";
 import "./globals.css";
 import { Providers } from "./providers";
-
-// 본문 글꼴. Figma 디자인 기준.
-const pretendard = localFont({
-  src: "../node_modules/pretendard/dist/web/variable/woff2/PretendardVariable.woff2",
-  variable: "--font-pretendard",
-  weight: "45 920",
-  display: "swap",
-});
 
 // 버그 번호, 경로, 코드
 const plexMono = IBM_Plex_Mono({
@@ -32,7 +23,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="ko"
       data-theme="dark"
       suppressHydrationWarning
-      className={`${pretendard.variable} ${plexMono.variable} h-full antialiased`}
+      className={`${plexMono.variable} h-full antialiased`}
     >
       <head>
         <script
