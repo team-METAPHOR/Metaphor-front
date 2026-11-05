@@ -6,7 +6,7 @@ import { ApiError, type Schemas } from "@/lib/api";
 import { AnalysisSection } from "./analysis-section";
 import { ClarificationSection } from "./clarification-section";
 import { EnvironmentSection } from "./environment-section";
-import { CancelJobButton, RevalidateButton } from "./job-actions";
+import { CancelJobButton, RetestButton, RevalidateButton } from "./job-actions";
 import { JobSection } from "./job-section";
 import { OverviewSection } from "./overview-section";
 import { isActiveJob, useJob, useJobResult, useReport } from "./queries";
@@ -97,7 +97,7 @@ function Header({ report, jobId }: { report: Report; jobId: string | null }) {
           </div>
         </div>
         {jobId ? (
-          <HeaderRevalidate reportId={report.id} jobId={jobId} />
+          <HeaderRerun reportId={report.id} programId={report.program_id} jobId={jobId} />
         ) : (
           <RevalidateButton reportId={report.id} />
         )}
@@ -121,9 +121,14 @@ function HeaderJobBadges({ reportId, jobId }: { reportId: string; jobId: string 
   );
 }
 
-function HeaderRevalidate({ reportId, jobId }: { reportId: string; jobId: string }) {
+function HeaderRerun({ reportId, programId, jobId }: { reportId: string; programId: string; jobId: string }) {
   const job = useJob(reportId, jobId);
-  return <RevalidateButton reportId={reportId} disabled={!job.data || isActiveJob(job.data.status)} />;
+  return (
+    <div className="flex flex-wrap items-start justify-end gap-2">
+      <RetestButton reportId={reportId} programId={programId} baseline={job.data} />
+      <RevalidateButton reportId={reportId} disabled={!job.data || isActiveJob(job.data.status)} />
+    </div>
+  );
 }
 
 function JobPanels({ reportId, jobId }: { reportId: string; jobId: string }) {
