@@ -163,6 +163,8 @@ export function TestAccountForm({
         submit_path: optional(draft.submit_path),
         success_path: optional(draft.success_path),
         success_selector: optional(draft.success_selector),
+        // PUT은 전체 교체라 화면에서 고치지 않는 값도 저장된 값 그대로 다시 보낸다.
+        unauthenticated_paths: account?.unauthenticated_paths ?? [],
       };
       return api<TestAccount>(accountPath(programId), { method: "PUT", body });
     },

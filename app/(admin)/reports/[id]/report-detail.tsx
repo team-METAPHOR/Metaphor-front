@@ -199,6 +199,7 @@ function JobLayout({
           <>
             <EvidenceCard report={report} />
             <TimelineCard report={report} job={repro} attempts={attempts.length} />
+            <DiagnosisCard reportId={report.id} jobId={repro.id} reproduced />
             <ConditionResultsCard job={repro} programId={report.program_id} />
             {resultError}
             <AttemptsCard attempts={attempts} stepCount={steps.length} reproduced />

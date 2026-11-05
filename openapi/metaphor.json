@@ -2748,6 +2748,209 @@
           }
         }
       }
+    },
+    "/api/v1/reports/{report_id}/eval-tag": {
+      "get": {
+        "tags": [
+          "evaluation"
+        ],
+        "summary": "Get Eval Tag",
+        "operationId": "get_eval_tag_api_v1_reports__report_id__eval_tag_get",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalTag"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "evaluation"
+        ],
+        "summary": "Set Eval Tag",
+        "description": "Evaluator-only slot (`eval_run_id`, `case_id`, `repeat_id`). Stored apart from the\nreport and never sent to the model, engine or target site. Developer/admin only.",
+        "operationId": "set_eval_tag_api_v1_reports__report_id__eval_tag_put",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvalTagUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalTag"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/{report_id}/eval-record": {
+      "get": {
+        "tags": [
+          "evaluation"
+        ],
+        "summary": "Get Eval Record",
+        "description": "Outcome, timing (received → report readable) and model calls of one report, derived\nfrom stored rows. Definitions: docs/api/evaluation.md.",
+        "operationId": "get_eval_record_api_v1_reports__report_id__eval_record_get",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalRecord"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orgs/{org_id}/eval-runs/{eval_run_id}/export": {
+      "get": {
+        "tags": [
+          "evaluation"
+        ],
+        "summary": "Export Eval Run",
+        "description": "Every report tagged with the run (success, failure, pending, cancelled, not run), one\nrecord per slot. `format=csv` gives one row per report. Members of the org only.",
+        "operationId": "export_eval_run_api_v1_orgs__org_id__eval_runs__eval_run_id__export_get",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Org Id"
+            }
+          },
+          {
+            "name": "eval_run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$",
+              "title": "Eval Run Id"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "json",
+                "csv"
+              ],
+              "type": "string",
+              "default": "json",
+              "title": "Format"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalExport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3126,6 +3329,80 @@
         "title": "BestAttempt",
         "description": "Latest finished job's stored engine result, as redacted plain text (never HTML)."
       },
+      "BlockedRequest": {
+        "properties": {
+          "method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Method"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "resource_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Type"
+          },
+          "blocker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocker"
+          },
+          "send_attempted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Send Attempted"
+          },
+          "non_fatal": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Non Fatal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "method",
+          "url",
+          "resource_type",
+          "blocker",
+          "send_attempted",
+          "non_fatal"
+        ],
+        "title": "BlockedRequest",
+        "description": "Out-of-scope subresource the engine blocked and continued past (0.6.0)."
+      },
       "Body_create_report_api_v1_reports_post": {
         "properties": {
           "program_id": {
@@ -3363,6 +3640,16 @@
               }
             ],
             "title": "Duration Ms"
+          },
+          "diagnosis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Diagnosis"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -3682,6 +3969,16 @@
                 "type": "null"
               }
             ]
+          },
+          "state_changes": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StateChangeApproval"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -3839,6 +4136,22 @@
                 "type": "null"
               }
             ]
+          },
+          "blocked_requests": {
+            "items": {
+              "$ref": "#/components/schemas/BlockedRequest"
+            },
+            "type": "array",
+            "title": "Blocked Requests",
+            "default": []
+          },
+          "state_changing_requests": {
+            "items": {
+              "$ref": "#/components/schemas/StateChangingRequest"
+            },
+            "type": "array",
+            "title": "State Changing Requests",
+            "default": []
           }
         },
         "type": "object",
@@ -3860,6 +4173,873 @@
           "video"
         ],
         "title": "DiagnosisAttempt"
+      },
+      "EvalCondition": {
+        "properties": {
+          "ordinal": {
+            "type": "integer",
+            "title": "Ordinal"
+          },
+          "condition_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ordinal",
+          "condition_id",
+          "status",
+          "verdict",
+          "error_code",
+          "duration_ms"
+        ],
+        "title": "EvalCondition"
+      },
+      "EvalExport": {
+        "properties": {
+          "eval_run_id": {
+            "type": "string",
+            "title": "Eval Run Id"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/EvalTotals"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EvalRecord"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "eval_run_id",
+          "generated_at",
+          "totals",
+          "items"
+        ],
+        "title": "EvalExport"
+      },
+      "EvalJob": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "automatic": {
+            "type": "boolean",
+            "title": "Automatic"
+          },
+          "parent_job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Job Id"
+          },
+          "baseline_job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Job Id"
+          },
+          "claims": {
+            "type": "integer",
+            "title": "Claims"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "backend_error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Backend Error Code"
+          },
+          "error_codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Error Codes"
+          },
+          "browser_attempts": {
+            "type": "integer",
+            "title": "Browser Attempts"
+          },
+          "result_available": {
+            "type": "boolean",
+            "title": "Result Available"
+          },
+          "report_md_available": {
+            "type": "boolean",
+            "title": "Report Md Available"
+          },
+          "plan_review": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Review"
+          },
+          "timing": {
+            "$ref": "#/components/schemas/EvalTiming"
+          },
+          "model_calls": {
+            "items": {
+              "$ref": "#/components/schemas/EvalModelCall"
+            },
+            "type": "array",
+            "title": "Model Calls"
+          },
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/EvalCondition"
+            },
+            "type": "array",
+            "title": "Conditions"
+          },
+          "result_url": {
+            "type": "string",
+            "title": "Result Url"
+          },
+          "artifacts_url": {
+            "type": "string",
+            "title": "Artifacts Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "automatic",
+          "parent_job_id",
+          "baseline_job_id",
+          "claims",
+          "verdict",
+          "reason_code",
+          "error_code",
+          "backend_error_code",
+          "error_codes",
+          "browser_attempts",
+          "result_available",
+          "report_md_available",
+          "plan_review",
+          "timing",
+          "model_calls",
+          "conditions",
+          "result_url",
+          "artifacts_url"
+        ],
+        "title": "EvalJob"
+      },
+      "EvalModelCall": {
+        "properties": {
+          "phase": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phase"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "configured_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Configured Model"
+          },
+          "usage_known": {
+            "type": "boolean",
+            "title": "Usage Known"
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Tokens"
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Tokens"
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms"
+          },
+          "retry_after_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry After Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phase",
+          "role",
+          "status",
+          "model",
+          "usage_known",
+          "input_tokens",
+          "output_tokens",
+          "latency_ms",
+          "retry_after_seconds"
+        ],
+        "title": "EvalModelCall",
+        "description": "One engine model call, from the stored (redacted) engine result."
+      },
+      "EvalRecord": {
+        "properties": {
+          "report_id": {
+            "type": "string",
+            "title": "Report Id"
+          },
+          "report_number": {
+            "type": "integer",
+            "title": "Report Number"
+          },
+          "program_id": {
+            "type": "string",
+            "title": "Program Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "eval": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTag"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Received At"
+          },
+          "duplicate_submissions": {
+            "type": "integer",
+            "title": "Duplicate Submissions"
+          },
+          "run_blocked": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Blocked"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "report_ready",
+              "needs_info",
+              "inconclusive",
+              "failed",
+              "timeout",
+              "cancelled",
+              "unfinished",
+              "not_run"
+            ],
+            "title": "Outcome"
+          },
+          "final_job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Final Job Id"
+          },
+          "final_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Final Status"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          },
+          "report_ready_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Ready At"
+          },
+          "processing_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processing Ms"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "ended_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended Ms"
+          },
+          "qa_jobs": {
+            "type": "integer",
+            "title": "Qa Jobs"
+          },
+          "retries": {
+            "type": "integer",
+            "title": "Retries"
+          },
+          "retests": {
+            "type": "integer",
+            "title": "Retests"
+          },
+          "error_codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Error Codes"
+          },
+          "report_url": {
+            "type": "string",
+            "title": "Report Url"
+          },
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/EvalJob"
+            },
+            "type": "array",
+            "title": "Jobs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "report_id",
+          "report_number",
+          "program_id",
+          "source",
+          "eval",
+          "received_at",
+          "duplicate_submissions",
+          "run_blocked",
+          "outcome",
+          "final_job_id",
+          "final_status",
+          "verdict",
+          "report_ready_at",
+          "processing_ms",
+          "ended_at",
+          "ended_ms",
+          "qa_jobs",
+          "retries",
+          "retests",
+          "error_codes",
+          "report_url",
+          "jobs"
+        ],
+        "title": "EvalRecord"
+      },
+      "EvalTag": {
+        "properties": {
+          "report_id": {
+            "type": "string",
+            "title": "Report Id"
+          },
+          "eval_run_id": {
+            "type": "string",
+            "title": "Eval Run Id"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "repeat_id": {
+            "type": "string",
+            "title": "Repeat Id"
+          },
+          "tagged_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Tagged At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "report_id",
+          "eval_run_id",
+          "case_id",
+          "repeat_id",
+          "tagged_at"
+        ],
+        "title": "EvalTag"
+      },
+      "EvalTagUpdate": {
+        "properties": {
+          "eval_run_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$",
+            "title": "Eval Run Id"
+          },
+          "case_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$",
+            "title": "Case Id"
+          },
+          "repeat_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$",
+            "title": "Repeat Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "eval_run_id",
+          "case_id",
+          "repeat_id"
+        ],
+        "title": "EvalTagUpdate"
+      },
+      "EvalTiming": {
+        "properties": {
+          "queued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Queued At"
+          },
+          "claimed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claimed At"
+          },
+          "engine_started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Engine Started At"
+          },
+          "engine_finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Engine Finished At"
+          },
+          "persisted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persisted At"
+          },
+          "queue_wait_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Queue Wait Ms"
+          },
+          "setup_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Setup Ms"
+          },
+          "engine_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Engine Ms"
+          },
+          "model_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Ms"
+          },
+          "browser_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Browser Ms"
+          },
+          "login_reset_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Reset Ms"
+          },
+          "persist_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persist Ms"
+          },
+          "total_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Ms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "queued_at",
+          "claimed_at",
+          "engine_started_at",
+          "engine_finished_at",
+          "persisted_at",
+          "queue_wait_ms",
+          "setup_ms",
+          "engine_ms",
+          "model_ms",
+          "browser_ms",
+          "persist_ms",
+          "total_ms"
+        ],
+        "title": "EvalTiming",
+        "description": "UTC timestamps and derived spans (ms). null = not reached or not reported."
+      },
+      "EvalTotals": {
+        "properties": {
+          "reports": {
+            "type": "integer",
+            "title": "Reports"
+          },
+          "duplicate_submissions": {
+            "type": "integer",
+            "title": "Duplicate Submissions"
+          },
+          "qa_jobs": {
+            "type": "integer",
+            "title": "Qa Jobs"
+          },
+          "retests": {
+            "type": "integer",
+            "title": "Retests"
+          },
+          "model_calls": {
+            "type": "integer",
+            "title": "Model Calls"
+          },
+          "model_calls_usage_unknown": {
+            "type": "integer",
+            "title": "Model Calls Usage Unknown"
+          },
+          "browser_attempts": {
+            "type": "integer",
+            "title": "Browser Attempts"
+          },
+          "report_files": {
+            "type": "integer",
+            "title": "Report Files"
+          },
+          "outcomes": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Outcomes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reports",
+          "duplicate_submissions",
+          "qa_jobs",
+          "retests",
+          "model_calls",
+          "model_calls_usage_unknown",
+          "browser_attempts",
+          "report_files",
+          "outcomes"
+        ],
+        "title": "EvalTotals"
       },
       "EventList": {
         "properties": {
@@ -4063,8 +5243,8 @@
           },
           "expires_in_days": {
             "type": "integer",
-            "maximum": 30,
-            "minimum": 1,
+            "maximum": 30.0,
+            "minimum": 1.0,
             "title": "Expires In Days",
             "default": 7
           }
@@ -4552,8 +5732,8 @@
             "anyOf": [
               {
                 "type": "integer",
-                "maximum": 8,
-                "minimum": 1
+                "maximum": 8.0,
+                "minimum": 1.0
               },
               {
                 "type": "null"
@@ -4845,6 +6025,17 @@
             },
             "type": "array",
             "title": "Observation Ids"
+          },
+          "non_fatal": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Non Fatal"
           }
         },
         "type": "object",
@@ -5070,8 +6261,8 @@
           },
           "auto_fresh_retries": {
             "type": "integer",
-            "maximum": 2,
-            "minimum": 0,
+            "maximum": 2.0,
+            "minimum": 0.0,
             "title": "Auto Fresh Retries",
             "default": 1
           },
@@ -5142,6 +6333,16 @@
             "maxLength": 64,
             "title": "Reset Adapter",
             "default": "stateless"
+          },
+          "state_changes": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StateChanges"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -5217,8 +6418,8 @@
             "anyOf": [
               {
                 "type": "integer",
-                "maximum": 2,
-                "minimum": 0
+                "maximum": 2.0,
+                "minimum": 0.0
               },
               {
                 "type": "null"
@@ -5355,6 +6556,16 @@
               }
             ],
             "title": "Reset Adapter"
+          },
+          "state_changes": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StateChanges"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -6156,6 +7367,16 @@
             "type": "string",
             "title": "Reset Adapter"
           },
+          "state_changes": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StateChanges"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -6256,6 +7477,155 @@
         ],
         "title": "Solution"
       },
+      "StateChangeApproval": {
+        "properties": {
+          "environment": {
+            "type": "string",
+            "enum": [
+              "test",
+              "staging"
+            ],
+            "title": "Environment"
+          },
+          "reset_adapter_id": {
+            "type": "string",
+            "title": "Reset Adapter Id"
+          },
+          "allowed_requests": {
+            "items": {
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "type": "array",
+              "maxItems": 2,
+              "minItems": 2
+            },
+            "type": "array",
+            "title": "Allowed Requests"
+          }
+        },
+        "type": "object",
+        "required": [
+          "environment",
+          "reset_adapter_id",
+          "allowed_requests"
+        ],
+        "title": "StateChangeApproval",
+        "description": "The approval the run used (`environment.state_changes`); compared on retest."
+      },
+      "StateChanges": {
+        "properties": {
+          "environment": {
+            "type": "string",
+            "enum": [
+              "test",
+              "staging"
+            ],
+            "title": "Environment"
+          },
+          "reset_adapter_id": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Reset Adapter Id"
+          },
+          "allowed_requests": {
+            "items": {
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "POST",
+                    "PUT",
+                    "PATCH",
+                    "DELETE"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "maxLength": 2048,
+                  "minLength": 1
+                }
+              ],
+              "type": "array",
+              "maxItems": 2,
+              "minItems": 2
+            },
+            "type": "array",
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Allowed Requests"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "environment",
+          "reset_adapter_id",
+          "allowed_requests"
+        ],
+        "title": "StateChanges",
+        "description": "Approved writes to disposable test data (engine `StateChangePolicy`). Admin-only."
+      },
+      "StateChangingRequest": {
+        "properties": {
+          "method": {
+            "type": "string",
+            "title": "Method"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "send_attempted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Send Attempted"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "blocker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocker"
+          }
+        },
+        "type": "object",
+        "required": [
+          "method",
+          "path",
+          "send_attempted",
+          "status",
+          "blocker"
+        ],
+        "title": "StateChangingRequest",
+        "description": "Approved-write audit (0.6.0): method/path/status only, never bodies or headers."
+      },
       "TestAccountPut": {
         "properties": {
           "login_id": {
@@ -6325,6 +7695,17 @@
               }
             ],
             "title": "Success Selector"
+          },
+          "unauthenticated_paths": {
+            "items": {
+              "type": "string",
+              "maxLength": 2048,
+              "pattern": "^/(?:[^/?#\\\\\\s][^?#\\\\\\s]*)?$"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Unauthenticated Paths",
+            "default": []
           }
         },
         "additionalProperties": false,
@@ -6401,6 +7782,14 @@
             ],
             "title": "Success Selector"
           },
+          "unauthenticated_paths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unauthenticated Paths",
+            "default": []
+          },
           "updated_at": {
             "anyOf": [
               {
@@ -6459,8 +7848,8 @@
           },
           "response_delay_ms": {
             "type": "integer",
-            "maximum": 2000,
-            "minimum": 0,
+            "maximum": 2000.0,
+            "minimum": 0.0,
             "title": "Response Delay Ms",
             "default": 0
           },
@@ -6633,8 +8022,8 @@
             "anyOf": [
               {
                 "type": "integer",
-                "maximum": 2000,
-                "minimum": 0
+                "maximum": 2000.0,
+                "minimum": 0.0
               },
               {
                 "type": "null"
