@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ApiError, api, type Schemas } from "@/lib/api";
@@ -26,10 +27,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   // 이미 로그인돼 있으면 첫 화면으로 보낸다.
-  const signedInRole = me.data?.memberships[0]?.role;
+  // 조직이 없는 사용자도 첫 화면의 조직 만들기/초대 수락 안내로 보낸다.
+  const signedIn = me.isSuccess;
+  const signedInRole = me.data?.memberships[0]?.role ?? "";
   useEffect(() => {
-    if (signedInRole) router.replace(homePath(signedInRole));
-  }, [signedInRole, router]);
+    if (signedIn) router.replace(homePath(signedInRole));
+  }, [signedIn, signedInRole, router]);
 
   const login = useMutation({
     mutationFn: async () => {
@@ -95,6 +98,13 @@ export default function LoginPage() {
         >
           {login.isPending ? "로그인 중…" : "로그인"}
         </button>
+
+        <p className="mt-4 text-center text-sm text-muted">
+          계정이 없나요?{" "}
+          <Link href="/signup" className="font-medium text-primary hover:underline">
+            회원가입
+          </Link>
+        </p>
       </form>
     </main>
   );
