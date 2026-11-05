@@ -97,6 +97,11 @@ export function ConditionResultsCard({ job, programId }: { job: Job; programId: 
                 <span role="cell" className="flex min-w-0 flex-col gap-0.5">
                   <span className="flex min-w-0 items-center gap-1.5">
                     <span className="truncate text-sm font-medium">{nameOf(item)}</span>
+                    {item.diagnosis?.next_actions.some((action) => action.code === "REVIEW_BLOCKED_SUBRESOURCES") && (
+                      <span className="shrink-0 rounded bg-warning-soft px-1.5 py-0.5 text-[11px] font-medium text-warning-ink">
+                        리소스 차단
+                      </span>
+                    )}
                     {showFurthest && furthest.includes(item.condition_id) && (
                       <span className="shrink-0 rounded bg-chip px-1.5 py-0.5 text-[11px] font-medium text-label">
                         가장 멀리 진행
@@ -121,6 +126,9 @@ export function ConditionResultsCard({ job, programId }: { job: Job; programId: 
       </div>
       {showFurthest && furthest.length > 0 && (
         <p className="text-xs text-muted">‘가장 멀리 진행’은 완료한 단계 수 기준이에요. 신고 증상과 얼마나 비슷한지는 뜻하지 않아요.</p>
+      )}
+      {items.some((item) => item.diagnosis?.next_actions.some((action) => action.code === "REVIEW_BLOCKED_SUBRESOURCES")) && (
+        <p className="text-xs text-muted">‘리소스 차단’은 허용 범위 밖 SDK·외부 리소스를 차단한 채 관찰한 조건이에요. 실제 화면과 다를 수 있어요.</p>
       )}
       {skipped.length > 0 && <p className="text-xs text-muted">AI가 고르지 않아 실행하지 않은 조건: {skipped.join(", ")}</p>}
     </Card>
