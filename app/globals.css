@@ -1,33 +1,115 @@
 @import "tailwindcss";
 
-:root {
-  --background: #f5f6fa;
-  --foreground: #1b1d29;
+/*
+ * 색 토큰. <html data-theme="light|dark">로 고른다(lib/theme.ts).
+ * 기본은 다크이고, 라이트 값은 Figma "설정 · 일반 · 라이트" 기준이다.
+ * 초록·노랑은 채우기용(--primary, --warning)과 글자용(--*-ink)을 나눈다.
+ * 흰 배경 위의 #00dc7d·#ffd500 글자는 읽기 어렵기 때문이다.
+ */
+:root,
+[data-theme="dark"] {
+  --background: #1e1e1e;
+  --foreground: #f8f8f8;
+  --body: #e3e3e3;
+  --label: #d7d7d7;
+  --surface: #292929;
+  --surface-inset: #232323;
+  --code: #161616;
+  --border: #3d3d3d;
+  --border-strong: #4a4a4a;
+  --line: #333333;
+  --muted: #8f8f8f;
+  --subtle: #a8a8a8;
+  --faint: #6f6f6f;
+  --primary: #00dc7d;
+  --primary-ink: #00dc7d;
+  --primary-foreground: #1e1e1e;
+  --primary-soft: rgb(0 220 125 / 0.08);
+  --warning: #ffd500;
+  --warning-ink: #ffd500;
+  --warning-soft: rgb(255 213 0 / 0.12);
+  --danger: #f87171;
+  --info: #7dd3fc;
+  --chip: #383838;
+  --sidebar: #232323;
+  --sidebar-border: #2c2c2c;
+  --sidebar-foreground: #f8f8f8;
+  --sidebar-active: #383838;
+
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --background: #f6f6f6;
+  --foreground: #1e1e1e;
+  --body: #2b2b2b;
+  --label: #3a3a3a;
   --surface: #ffffff;
-  --border: #e4e6ef;
-  --muted: #6b7083;
-  --primary: #6e5cfc;
-  --primary-soft: #efedff;
-  --sidebar: #181a26;
-  --sidebar-foreground: #c9cbd6;
-  --sidebar-active: #262938;
+  --surface-inset: #f2f2f2;
+  --code: #f4f4f4;
+  --border: #dcdcdc;
+  --border-strong: #c4c4c4;
+  --line: #ececec;
+  --muted: #6f6f6f;
+  --subtle: #5c5c5c;
+  --faint: #9a9a9a;
+  --primary: #00dc7d;
+  --primary-ink: #00915a;
+  --primary-foreground: #1e1e1e;
+  --primary-soft: rgb(0 220 125 / 0.12);
+  --warning: #ffd500;
+  --warning-ink: #8a6d00;
+  --warning-soft: rgb(255 213 0 / 0.18);
+  --danger: #dc2626;
+  --info: #0369a1;
+  --chip: #ececec;
+  --sidebar: #ffffff;
+  --sidebar-border: #ececec;
+  --sidebar-foreground: #1e1e1e;
+  --sidebar-active: #ececec;
+
+  color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-body: var(--body);
+  --color-label: var(--label);
   --color-surface: var(--surface);
+  --color-surface-inset: var(--surface-inset);
+  --color-code: var(--code);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-line: var(--line);
   --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-faint: var(--faint);
   --color-primary: var(--primary);
+  --color-primary-ink: var(--primary-ink);
+  --color-primary-foreground: var(--primary-foreground);
   --color-primary-soft: var(--primary-soft);
+  --color-warning: var(--warning);
+  --color-warning-ink: var(--warning-ink);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-chip: var(--chip);
   --color-sidebar: var(--sidebar);
+  --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-active: var(--sidebar-active);
-  --font-sans: var(--font-noto-sans-kr), system-ui, sans-serif;
+  --font-sans: var(--font-pretendard), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  letter-spacing: -0.02em;
+}
+
+/* 코드와 번호는 자간을 줄이지 않는다. */
+.font-mono {
+  letter-spacing: 0;
 }
