@@ -9,6 +9,7 @@ import { ConditionResultsCard } from "./condition-results";
 import { DiagnosisCard } from "./diagnosis-card";
 import { EvidenceCard, LogEstimateCard } from "./evidence";
 import { CancelJobButton, RevalidateButton } from "./job-actions";
+import { LiveCard } from "./live-card";
 import { TestExportCard, VideoCard } from "./media-cards";
 import { NeedsCard } from "./needs-card";
 import { isActiveJob, isResultExpired, useJob, useJobResult, useReport } from "./queries";
@@ -98,6 +99,10 @@ function Body({
   const current = retest ?? repro;
   const older = runs && runs.shown.id !== runs.latest.id;
   const history = runs && <RunHistoryCard reportId={report.id} shownId={runs.shown.id} latestId={runs.latest.id} />;
+  // 돌고 있는 실행의 실시간 화면. 실행이 바뀌면 key로 연결과 화면을 새로 시작한다.
+  const live = current && isActiveJob(current.status) && (
+    <LiveCard key={current.id} jobId={current.id} programId={report.program_id} />
+  );
 
   return (
     <div className="flex flex-col gap-8">
@@ -107,9 +112,17 @@ function Body({
         {repro && variant === "stopped" ? (
           <StoppedLayout report={report} job={repro} history={history} />
         ) : repro && (variant === "reproduced" || variant === "not-reproduced") ? (
-          <JobLayout report={report} repro={repro} retest={retest} variant={variant} history={history} older={!!older} />
+          <JobLayout
+            report={report}
+            repro={repro}
+            retest={retest}
+            variant={variant}
+            history={history}
+            older={!!older}
+            live={live}
+          />
         ) : (
-          <PendingLayout report={report} job={repro} history={history} />
+          <PendingLayout report={report} job={repro} history={history} live={live} />
         )}
       </div>
     </div>
@@ -172,12 +185,15 @@ function JobLayout({
   variant,
   history,
   older,
+  live,
 }: {
   report: Report;
   repro: Job;
   retest: Job | null;
   variant: Exclude<Variant, "pending" | "stopped">;
   history: React.ReactNode;
+  /** 수정 확인(retest)이 돌고 있으면 그 실시간 화면 */
+  live: React.ReactNode;
   /** 이력에서 고른 지난 실행. 그 실행의 질문에 답하면 지금 흐름과 엇갈리므로 답변 칸을 숨긴다. */
   older: boolean;
 }) {
@@ -197,6 +213,7 @@ function JobLayout({
       <Columns
         main={
           <>
+            {live}
             <EvidenceCard report={report} />
             <TimelineCard report={report} job={repro} attempts={attempts.length} />
             <ConditionResultsCard job={repro} programId={report.program_id} />
@@ -226,6 +243,7 @@ function JobLayout({
     <Columns
       main={
         <>
+          {live}
           {!older && <NeedsCard reportId={report.id} programId={report.program_id} job={repro} />}
           <DiagnosisCard reportId={report.id} jobId={repro.id} />
           <ConditionResultsCard job={repro} programId={report.program_id} />
@@ -269,18 +287,37 @@ function StoppedLayout({ report, job, history }: { report: Report; job: Job; his
   );
 }
 
-function PendingLayout({ report, job, history }: { report: Report; job: Job | null; history: React.ReactNode }) {
+function PendingLayout({
+  report,
+  job,
+  history,
+  live,
+}: {
+  report: Report;
+  job: Job | null;
+  history: React.ReactNode;
+  live: React.ReactNode;
+}) {
   return (
     <Columns
       main={
-        <>
-          <EvidenceCard report={report} />
-          {job ? (
-            <TimelineCard report={report} job={job} attempts={0} />
-          ) : (
-            <Card title="자동 재현" description="아직 재현을 시작하지 않았어요. 위의 ‘재현 시작’으로 실제 브라우저에서 확인할 수 있어요." />
-          )}
-        </>
+        live ? (
+          // 재현 중: 화면과 진행 단계가 먼저, 신고 내용은 그 아래.
+          <>
+            {live}
+            {job && <TimelineCard report={report} job={job} attempts={0} />}
+            <EvidenceCard report={report} />
+          </>
+        ) : (
+          <>
+            <EvidenceCard report={report} />
+            {job ? (
+              <TimelineCard report={report} job={job} attempts={0} />
+            ) : (
+              <Card title="자동 재현" description="아직 재현을 시작하지 않았어요. 위의 ‘재현 시작’으로 실제 브라우저에서 확인할 수 있어요." />
+            )}
+          </>
+        )
       }
       side={
         <>
