@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { api, type Schemas } from "@/lib/api";
+import { ACTIVE_REFRESH_MS, REFRESH_MS, isActiveProgress } from "../reports/all-reports";
 
 /** 확인할 제보 카드 순서. 카드를 누르면 같은 상태로 거른 제보 목록으로 간다. */
 export const STATUS_CARDS = [
@@ -26,6 +27,12 @@ export function useReportSummary(orgId: string) {
     queryKey: ["reports", "summary", orgId],
     queryFn: ({ signal }) =>
       api<Schemas["ReportSummary"]>(`/orgs/${encodeURIComponent(orgId)}/report-summary`, { signal }),
+    refetchInterval: (query) => {
+      const counts = query.state.data?.counts ?? {};
+      return Object.entries(counts).some(([progress, count]) => count > 0 && isActiveProgress(progress))
+        ? ACTIVE_REFRESH_MS
+        : REFRESH_MS;
+    },
   });
 }
 
@@ -39,5 +46,6 @@ export function useWeeklyStats(orgId: string) {
         `/orgs/${encodeURIComponent(orgId)}/report-stats?${new URLSearchParams({ from })}`,
         { signal },
       ),
+    refetchInterval: REFRESH_MS,
   });
 }

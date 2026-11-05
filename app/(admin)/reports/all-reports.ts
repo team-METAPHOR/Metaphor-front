@@ -30,12 +30,27 @@ function reportParams(query: ReportQuery): URLSearchParams {
   return params;
 }
 
+/**
+ * 목록·대시보드 자동 갱신 주기. 위젯으로 들어온 제보가 새로고침 없이 보이게 한다.
+ * 탭이 가려져 있으면 TanStack Query가 갱신을 멈춘다(refetchIntervalInBackground 기본 false).
+ */
+export const REFRESH_MS = 30_000;
+/** 접수됐거나 재현 중인 제보가 있으면 상태가 곧 바뀌므로 더 자주 본다. */
+export const ACTIVE_REFRESH_MS = 10_000;
+const ACTIVE_PROGRESS = ["new", "reproducing"];
+
+export function isActiveProgress(progress: string): boolean {
+  return ACTIVE_PROGRESS.includes(progress);
+}
+
 /** 제보 목록 한 페이지. 서버가 거르고 정렬하고 총 개수(total)를 준다. 조건을 바꾸는 동안 이전 페이지를 계속 보여 준다. */
 export function useReportPage(query: ReportQuery) {
   return useQuery({
     queryKey: ["reports", "page", query],
     queryFn: ({ signal }) => api<ReportList>(`/reports?${reportParams(query)}`, { signal }),
     placeholderData: keepPreviousData,
+    refetchInterval: (q) =>
+      q.state.data?.items.some((report) => isActiveProgress(report.progress)) ? ACTIVE_REFRESH_MS : REFRESH_MS,
   });
 }
 
