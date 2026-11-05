@@ -31,9 +31,14 @@ function isStatus(error: unknown, ...statuses: number[]): boolean {
   return error instanceof ApiError && statuses.includes(error.status);
 }
 
-/** 404, 403은 다시 요청해도 같으니 재시도하지 않는다. */
+/** 404, 403, 410은 다시 요청해도 같으니 재시도하지 않는다. */
 function retryUnlessDenied(count: number, error: unknown): boolean {
-  return !isStatus(error, 401, 403, 404) && count < 2;
+  return !isStatus(error, 401, 403, 404, 410) && count < 2;
+}
+
+/** 보존 기간이 지나 서버가 결과를 지웠다(410 RESULT_EXPIRED). 다시 받아도 돌아오지 않는다. */
+export function isResultExpired(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 410 && error.code === "RESULT_EXPIRED";
 }
 
 export function useReport(reportId: string) {
@@ -89,7 +94,10 @@ export function useJobEvents(jobId: string, active: boolean) {
   });
 }
 
-/** 끝나지 않은 job은 결과가 404일 수 있다. 에러가 아니라 "결과 대기"(null)로 다룬다. */
+/**
+ * 끝나지 않은 job은 결과가 404·409일 수 있다. 에러가 아니라 "결과 대기"(null)로 다룬다.
+ * 410 RESULT_EXPIRED는 에러로 남겨 화면이 보존 기간 안내를 띄우게 한다(재시도 없음).
+ */
 export function useJobResult(jobId: string) {
   return useQuery({
     queryKey: reportKeys.result(jobId),

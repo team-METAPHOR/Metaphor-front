@@ -79,7 +79,7 @@ export type Classification =
   | "compatibility"
   | "needs_review";
 
-export type ArtifactKind = "report_md" | "screenshot" | "json";
+export type ArtifactKind = "input_image" | "report_md" | "screenshot" | "json" | "video" | "playwright_spec";
 
 /** ReportDetail.client_context 구조 (위젯 신고). */
 export type ClientContext = {
