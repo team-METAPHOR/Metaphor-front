@@ -152,7 +152,7 @@ function AttentionRow({ item }: { item: AttentionItem }) {
     >
       <span className="flex min-w-0 items-center gap-2.5">
         <span
-          className={`inline-flex w-[78px] shrink-0 justify-center rounded-lg px-2.5 py-1.5 text-base leading-none font-bold text-surface ${
+          className={`inline-flex min-w-[78px] shrink-0 justify-center whitespace-nowrap rounded-lg px-2.5 py-1.5 text-base leading-none font-bold text-surface ${
             reproduced ? "bg-primary" : "bg-warning"
           }`}
         >
