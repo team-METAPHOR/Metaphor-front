@@ -63,7 +63,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     user,
     membership,
     role,
-    canReview: role === "reviewer" || role === "admin",
+    canReview: role === "developer" || role === "admin",
     isAdmin: role === "admin",
   };
   return <SessionContext.Provider value={session}>{children}</SessionContext.Provider>;

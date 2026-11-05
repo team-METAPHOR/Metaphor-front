@@ -3,16 +3,25 @@
 // 처리해야 한다(lib/labels.ts 참고).
 
 /** 조직 내 역할. */
-export type Role = "developer" | "reviewer" | "admin";
+export type Role = "developer" | "viewer" | "admin";
 
-/** 처리 상태: 사람이 결정한다. closed는 재시험 통과 시 서버만 바꾼다. */
+/** 처리 상태: 사람이 결정한다. closed는 수정 확인 통과(fix_verified) 뒤에만 고를 수 있다. */
 export type WorkflowStatus = "received" | "fixing" | "dismissed" | "closed";
 
-/** 사람이 바꿀 수 있는 처리 상태(PATCH /reports/{id}/workflow). */
+/** 언제든 바꿀 수 있는 처리 상태(PATCH /reports/{id}/workflow). closed는 fix_verified일 때만 더한다. */
 export const SETTABLE_WORKFLOW_STATUSES = ["received", "fixing", "dismissed"] as const;
 
 /** 진행 단계: 처리 상태와 최신 job으로 서버가 계산한다. */
-export type Progress = "new" | "reproducing" | "reproduced" | "triaged" | "fixing" | "dismissed" | "closed";
+export type Progress =
+  | "new"
+  | "reproducing"
+  | "reproduced"
+  | "triaged"
+  | "verified"
+  | "waiting_quota"
+  | "fixing"
+  | "dismissed"
+  | "closed";
 
 /** 검증 job 실행 상태. */
 export type JobStatus =

@@ -18,7 +18,7 @@ const COMPARABLE_VERDICTS = ["reproduced", "not_reproduced"];
 
 /**
  * 수정 확인: 재현에 성공한 절차를 승인된 테스트 빌드에 다시 돌린다.
- * 통과(재현 안 됨)하면 서버가 신고를 바로 마감한다.
+ * 통과(재현 안 됨)하면 fix_verified가 되고, 마감은 사람이 한다.
  */
 export function RetestCard({
   reportId,
@@ -69,7 +69,7 @@ export function RetestCard({
   return (
     <Card
       title="수정 확인"
-      description="실제 브라우저에서 같은 재현 절차를 다시 돌려 정말 고쳐졌는지 확인해요. 통과하면 이 버그는 마감돼요."
+      description="실제 브라우저에서 같은 재현 절차를 다시 돌려 정말 고쳐졌는지 확인해요. 통과하면 마감할 수 있어요."
       tone="success"
       aside={
         canReview &&
@@ -147,7 +147,7 @@ export function RetestCard({
         <LastRun retest={retest} />
       </Inset>
 
-      {retest && passed && watching === retest.id && <PassedDialog job={retest} onClose={() => setWatching(null)} />}
+      {retest && passed && watching === retest.id && <PassedDialog job={retest} reportId={reportId} onClose={() => setWatching(null)} />}
     </Card>
   );
 }
@@ -177,16 +177,27 @@ function LastRun({ retest }: { retest: Job | null }) {
   );
 }
 
-/**
- * 수정 확인 통과 안내. 지금 서버는 통과하면 바로 마감하므로 확인만 받는다.
- * 사람이 마감을 정하게 되면(Metaphor-back#57) "나중에 / 마감하기"로 바꾼다.
- */
-function PassedDialog({ job, onClose }: { job: Job; onClose: () => void }) {
+/** 수정 확인 통과 안내. 서버는 자동으로 마감하지 않으므로 지금 마감할지 고른다. */
+function PassedDialog({ job, reportId, onClose }: { job: Job; reportId: string; onClose: () => void }) {
+  const { canReview } = useSession();
+  const client = useQueryClient();
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     dialog.current?.showModal();
   }, []);
   const seconds = secondsBetween(job.started_at, job.finished_at);
+  const close = useMutation({
+    mutationFn: () =>
+      api<Schemas["ReportDetail"]>(`/reports/${encodeURIComponent(reportId)}/workflow`, {
+        method: "PATCH",
+        body: { status: "closed" },
+      }),
+    onSuccess: (updated) => {
+      client.setQueryData(reportKeys.report(reportId), updated);
+      void client.invalidateQueries({ queryKey: ["reports"] });
+      dialog.current?.close();
+    },
+  });
 
   return (
     <dialog
@@ -202,19 +213,35 @@ function PassedDialog({ job, onClose }: { job: Job; onClose: () => void }) {
             수정 확인을 통과했어요
           </h2>
           <p className="text-sm leading-[22px] text-body">
-            같은 재현 절차를 테스트 빌드에서 다시 돌렸고, 신고한 현상이 나오지 않았어요. 이 버그는 마감됐어요.
+            같은 재현 절차를 테스트 빌드에서 다시 돌렸고, 신고한 현상이 나오지 않았어요. 확인했으면 이 제보를 마감하세요.
           </p>
         </div>
         <Inset className="flex flex-col gap-2 text-[13px]">
           <Row label="결과" value={<span className="text-primary-ink">통과</span>} />
           {seconds !== null && <Row label="실행 시간" value={formatClock(seconds)} />}
-          <Row label="마감 시각" value={formatDateTime(job.finished_at)} />
+          <Row label="확인 시각" value={formatDateTime(job.finished_at)} />
         </Inset>
-        <p className="text-xs text-muted">마감된 제보는 목록에서 빠져요.</p>
-        <div className="flex justify-end">
-          <button type="button" className={button.primary} autoFocus onClick={() => dialog.current?.close()}>
-            확인
+        {close.isError && (
+          <p role="alert" className="text-sm text-danger">
+            마감하지 못했어요. 잠시 후 다시 시도하세요.
+          </p>
+        )}
+        <p className="text-xs text-muted">마감한 제보는 목록에서 빠져요. 나중에 ‘담당과 상태’에서 마감할 수도 있어요.</p>
+        <div className="flex justify-end gap-2">
+          <button type="button" className={button.ghost} onClick={() => dialog.current?.close()}>
+            나중에
           </button>
+          {canReview && (
+            <button
+              type="button"
+              className={button.primary}
+              autoFocus
+              disabled={close.isPending}
+              onClick={() => close.mutate()}
+            >
+              {close.isPending ? "마감 중…" : "마감하기"}
+            </button>
+          )}
         </div>
       </div>
     </dialog>

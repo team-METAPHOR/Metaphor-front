@@ -10,7 +10,7 @@ export const orgKeys = {
   invites: (orgId: string) => ["orgs", orgId, "invites"] as const,
 };
 
-export const roles = ["developer", "reviewer", "admin"] as const;
+export const roles = ["developer", "viewer", "admin"] as const;
 
 export const buttonClass =
   "shrink-0 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60";

@@ -60,12 +60,16 @@ export function reportHint(report: Report): Hint {
       return needsInfo(report)
         ? { text: "추가 정보가 필요합니다", tone: "warning" }
         : { text: "시도했지만 같은 현상이 나오지 않음", tone: "muted" };
+    case "waiting_quota":
+      return { text: "일일 재현 한도를 넘어 대기 중, 다시 재현하면 시작돼요", tone: "warning" };
+    case "verified":
+      return { text: "수정 확인 통과, 확인했으면 마감하세요", tone: "success" };
     case "fixing":
       return { text: "수정 배포 후 수정 확인을 실행하세요", tone: "success" };
     case "dismissed":
       return { text: "버그 아님·중복으로 종료", tone: "faint" };
     case "closed":
-      return { text: "수정 확인을 통과해 마감됨", tone: "faint" };
+      return { text: "마감됨", tone: "faint" };
     default:
       return { text: "", tone: "muted" };
   }
