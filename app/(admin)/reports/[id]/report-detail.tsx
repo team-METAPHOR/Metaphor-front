@@ -8,7 +8,7 @@ import { AssignmentCard } from "./assignment-card";
 import { EvidenceCard, LogEstimateCard } from "./evidence";
 import { CancelJobButton, RevalidateButton } from "./job-actions";
 import { NeedsCard } from "./needs-card";
-import { isActiveJob, useJob, useJobResult, useReport } from "./queries";
+import { isActiveJob, isResultExpired, useJob, useJobResult, useReport } from "./queries";
 import { RetestCard } from "./retest-card";
 import { OlderRunBanner, RUN_PARAM, RunHistoryCard } from "./run-history";
 import {
@@ -180,9 +180,13 @@ function JobLayout({
   const result = useJobResult(repro.id);
   const steps = result.data?.report?.scenario?.steps ?? [];
   const attempts = result.data?.report?.run?.evidence ?? [];
-  const resultError = result.isError && (
-    <ErrorText error={result.error} prefix="재현 결과를 불러오지 못했어요." />
-  );
+  const resultError =
+    result.isError &&
+    (isResultExpired(result.error) ? (
+      <Card title="결과 보존 기간이 지났어요" description="보관 기간이 끝나 재현 결과와 증거가 삭제됐어요." />
+    ) : (
+      <ErrorText error={result.error} prefix="재현 결과를 불러오지 못했어요." />
+    ));
 
   if (variant === "reproduced") {
     return (
