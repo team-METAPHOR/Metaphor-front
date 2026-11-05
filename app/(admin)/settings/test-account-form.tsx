@@ -101,6 +101,7 @@ type Draft = {
   submit_path: string;
   success_path: string;
   success_selector: string;
+  submit_selector: string;
 };
 
 function validate(draft: Draft): string | null {
@@ -149,6 +150,7 @@ export function TestAccountForm({
     submit_path: account?.submit_path ?? "",
     success_path: account?.success_path ?? "",
     success_selector: account?.success_selector ?? "",
+    submit_selector: account?.submit_selector ?? "",
   }));
   const [invalid, setInvalid] = useState<string | null>(null);
   const set = (patch: Partial<Draft>) => setDraft((previous) => ({ ...previous, ...patch }));
@@ -163,6 +165,7 @@ export function TestAccountForm({
         submit_path: optional(draft.submit_path),
         success_path: optional(draft.success_path),
         success_selector: optional(draft.success_selector),
+        submit_selector: optional(draft.submit_selector),
         // PUT은 전체 교체라 화면에서 고치지 않는 값도 저장된 값 그대로 다시 보낸다.
         unauthenticated_paths: account?.unauthenticated_paths ?? [],
       };
@@ -258,6 +261,18 @@ export function TestAccountForm({
           </Field>
         </div>
       </div>
+      <Field
+        label="로그인 버튼 (선택, CSS 선택자)"
+        help="로그인 화면에 검색 버튼처럼 다른 제출 버튼이 있으면 로그인 버튼을 정확히 지정해요. 비우면 자동으로 찾아요."
+      >
+        <input
+          value={draft.submit_selector}
+          onChange={(event) => set({ submit_selector: event.target.value })}
+          maxLength={256}
+          placeholder='[data-testid="login-submit"]'
+          className={`${modalInput} font-mono`}
+        />
+      </Field>
       <p className="text-xs text-muted">
         아이디·비밀번호 입력칸과 제출 버튼은 자동으로 찾아요. 2단계 인증, CAPTCHA, 외부 SSO 로그인은 지원하지 않아요.
         비밀번호는 암호화해서 저장하고 재현할 때만 써요.
