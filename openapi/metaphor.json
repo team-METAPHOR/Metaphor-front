@@ -6147,6 +6147,11 @@
             "title": "Has Test Account",
             "default": false
           },
+          "credentials_blocked_by_http": {
+            "type": "boolean",
+            "title": "Credentials Blocked By Http",
+            "default": false
+          },
           "reset_adapter": {
             "type": "string",
             "title": "Reset Adapter"
@@ -6281,6 +6286,45 @@
               }
             ],
             "title": "Login Path"
+          },
+          "submit_path": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048,
+                "pattern": "^/(?:[^/?#\\\\\\s][^?#\\\\\\s]*)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submit Path"
+          },
+          "success_path": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048,
+                "pattern": "^/(?:[^/?#\\\\\\s][^?#\\\\\\s]*)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Success Path"
+          },
+          "success_selector": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Success Selector"
           }
         },
         "additionalProperties": false,
@@ -6323,6 +6367,39 @@
               }
             ],
             "title": "Login Path"
+          },
+          "submit_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submit Path"
+          },
+          "success_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Success Path"
+          },
+          "success_selector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Success Selector"
           },
           "updated_at": {
             "anyOf": [

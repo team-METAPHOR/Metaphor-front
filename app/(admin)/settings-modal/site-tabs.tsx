@@ -11,6 +11,7 @@ import { SdkSnippet } from "../settings/sdk-snippet";
 import { ErrorText, widgetSettingsKey } from "../settings/ui";
 import { WidgetSettingsCard } from "../settings/widget-settings-card";
 import { NotReady, Section, SettingRow, Toggle, modalInput } from "./parts";
+import { TestAccountSection } from "./test-account";
 import { TestConditionsSection } from "./test-conditions";
 
 type Program = Schemas["ProgramResponse"];
@@ -139,17 +140,16 @@ function SiteInfoTab({ programId }: { programId: string }) {
 }
 
 /**
- * 재현 환경. 테스트 조건은 서버와 연결돼 있다.
- * 재현 대상 주소 지정, 테스트 계정 저장(Metaphor-back#61), 위험 요청 차단은 화면만 있다.
+ * 재현 환경. 테스트 계정과 테스트 조건은 서버와 연결돼 있다.
+ * 재현 대상 주소 지정, 위험 요청 차단은 화면만 있다.
  */
 function ReproTab({ programId }: { programId: string }) {
   const program = useProgram(programId);
   const baseUrl = program.data?.scope.base_url ?? "";
-  const hasSession = program.data?.scope.has_session === true;
 
   return (
     <>
-      <NotReady>재현 대상 주소, 테스트 계정, 위험 요청 차단은 준비 중이에요. 지금은 사이트 기본 URL로 재현해요.</NotReady>
+      <NotReady>재현 대상 주소 지정과 위험 요청 차단은 준비 중이에요. 지금은 사이트 기본 URL로 재현해요.</NotReady>
 
       <Section title="재현 환경" description="AI가 실제로 접속해서 버그를 따라 해 보는 곳이에요.">
         <div className="flex flex-col gap-2">
@@ -162,22 +162,7 @@ function ReproTab({ programId }: { programId: string }) {
           </p>
         </div>
 
-        <div className="mt-[18px] flex flex-col gap-2.5">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-semibold">테스트 계정</span>
-              <span className="text-xs text-muted">로그인이 필요한 화면을 재현할 때 써요. 비밀번호는 암호화해서 저장해요.</span>
-            </div>
-            <button type="button" disabled className={button.ghost}>
-              + 계정 추가
-            </button>
-          </div>
-          <div className="rounded-[10px] border border-line px-4 py-3 text-[13px] text-muted">
-            {hasSession
-              ? "이 사이트에는 로그인 세션이 연결돼 있어요. 계정별 관리는 준비 중이에요."
-              : "등록된 테스트 계정이 없어요."}
-          </div>
-        </div>
+        <TestAccountSection programId={programId} scope={program.data?.scope} />
       </Section>
 
       <TestConditionsSection programId={programId} />
