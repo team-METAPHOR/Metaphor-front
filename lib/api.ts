@@ -10,6 +10,8 @@ export class ApiError extends Error {
     readonly code: string,
     message: string,
     readonly requestId: string | null,
+    /** 에러별 추가 정보. 예: ORIGIN_VERIFY_FAILED 의 { reason } */
+    readonly detail: unknown = null,
   ) {
     super(message);
     this.name = "ApiError";
@@ -51,13 +53,16 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
 async function toApiError(response: Response): Promise<ApiError> {
   const requestId = response.headers.get("X-Request-Id");
   try {
-    const data = (await response.json()) as { error?: { code?: string; message?: string; request_id?: string } };
+    const data = (await response.json()) as {
+      error?: { code?: string; message?: string; request_id?: string; detail?: unknown };
+    };
     if (data.error?.code) {
       return new ApiError(
         response.status,
         data.error.code,
         data.error.message ?? data.error.code,
         data.error.request_id ?? requestId,
+        data.error.detail ?? null,
       );
     }
   } catch {

@@ -1,8 +1,9 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { useState } from "react";
-import { api, type Schemas } from "@/lib/api";
+import { ApiError, api, type Schemas } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { reportKeys } from "./queries";
 import { ErrorText, buttonClass } from "./ui";
@@ -64,7 +65,17 @@ export function RevalidateButton({ reportId, disabled }: { reportId: string; dis
           다시 검증
         </button>
       )}
-      {revalidate.error && <ErrorText error={revalidate.error} prefix="검증을 요청하지 못했어요." />}
+      {revalidate.error instanceof ApiError && revalidate.error.code === "ORIGIN_NOT_VERIFIED" ? (
+        <p role="alert" className="text-sm text-red-600">
+          테스트 대상 도메인의 소유 확인이 필요해요.{" "}
+          <Link href="/settings" className="font-medium underline">
+            사이트 설정
+          </Link>
+          에서 확인하세요.
+        </p>
+      ) : (
+        revalidate.error && <ErrorText error={revalidate.error} prefix="검증을 요청하지 못했어요." />
+      )}
     </div>
   );
 }
