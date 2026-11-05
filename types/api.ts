@@ -2253,6 +2253,12 @@ export interface components {
             live_screenshot_enabled: boolean;
             /** Updated At */
             updated_at: string | null;
+            /** Api Base */
+            api_base: string | null;
+            /** Sdk Url */
+            sdk_url: string | null;
+            /** Sdk Integrity */
+            sdk_integrity: string | null;
         };
         /**
          * WorkflowUpdate

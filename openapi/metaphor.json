@@ -7096,6 +7096,39 @@
               }
             ],
             "title": "Updated At"
+          },
+          "api_base": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Base"
+          },
+          "sdk_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sdk Url"
+          },
+          "sdk_integrity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sdk Integrity"
           }
         },
         "type": "object",
@@ -7107,7 +7140,10 @@
           "public_reporting_enabled",
           "auto_detect_enabled",
           "live_screenshot_enabled",
-          "updated_at"
+          "updated_at",
+          "api_base",
+          "sdk_url",
+          "sdk_integrity"
         ],
         "title": "WidgetSettingsResponse"
       },
