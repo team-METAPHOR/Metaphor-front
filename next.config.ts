@@ -16,6 +16,14 @@ const nextConfig: NextConfig = {
     },
   },
   // 세션 쿠키가 같은 출처로 붙도록 API를 같은 도메인 아래로 프록시한다.
+  // 계정·사이트·조직 페이지는 설정 모달로 옮겼다. 예전 주소는 해당 탭으로 보낸다(?program은 그대로 붙는다).
+  async redirects() {
+    return [
+      { source: "/account", destination: "/dashboard?settings=account", permanent: false },
+      { source: "/settings", destination: "/dashboard?settings=sdk", permanent: false },
+      { source: "/org", destination: "/dashboard?settings=members", permanent: false },
+    ];
+  },
   async rewrites() {
     return [{ source: "/api/:path*", destination: `${apiOrigin}/api/:path*` }];
   },

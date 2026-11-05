@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { ApiError, api, type Schemas } from "@/lib/api";
 import { homePath, meQueryKey, useMe } from "@/lib/auth";
+import { AuthError, AuthField, AuthFooter, AuthHeading, AuthShell, authInput, authLink, authSubmit } from "@/components/auth-ui";
 
 type Me = Schemas["MeResponse"];
 
@@ -46,72 +47,63 @@ export default function LoginPage() {
   });
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
+    <AuthShell>
+      <AuthHeading title="로그인">버그 신고를 관리하려면 로그인하세요.</AuthHeading>
+
+      {/* useSearchParams는 Suspense 안에서만 쓸 수 있다(cacheComponents). */}
+      <Suspense fallback={null}>
+        <PasswordChangedNotice />
+      </Suspense>
+
       <form
         onSubmit={(event) => {
           event.preventDefault();
           login.mutate();
         }}
-        className="w-full max-w-sm rounded-2xl border border-border bg-surface p-8 shadow-sm"
+        className="flex flex-col gap-6"
       >
-        <h1 className="text-2xl font-bold">Metaphor</h1>
-        <p className="mt-1 text-sm text-muted">버그 신고 관리</p>
+        <div className="flex flex-col gap-4">
+          <AuthField id="email" label="이메일">
+            <input
+              id="email"
+              type="email"
+              autoComplete="username"
+              required
+              maxLength={320}
+              placeholder="you@company.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className={authInput}
+            />
+          </AuthField>
+          <AuthField id="password" label="비밀번호">
+            <input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              maxLength={256}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              aria-invalid={login.isError}
+              className={authInput}
+            />
+          </AuthField>
+          {login.isError && <AuthError>{loginErrorMessage(login.error)}</AuthError>}
+        </div>
 
-        {/* useSearchParams는 Suspense 안에서만 쓸 수 있다(cacheComponents). */}
-        <Suspense fallback={null}>
-          <PasswordChangedNotice />
-        </Suspense>
-
-        <label className="mt-8 block text-sm font-medium" htmlFor="email">
-          이메일
-        </label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="username"
-          required
-          maxLength={320}
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-primary"
-        />
-
-        <label className="mt-4 block text-sm font-medium" htmlFor="password">
-          비밀번호
-        </label>
-        <input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          maxLength={256}
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-primary"
-        />
-
-        {login.isError && (
-          <p role="alert" className="mt-4 text-sm text-red-600">
-            {loginErrorMessage(login.error)}
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={login.isPending}
-          className="mt-6 w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
-        >
+        <button type="submit" disabled={login.isPending} className={authSubmit}>
           {login.isPending ? "로그인 중…" : "로그인"}
         </button>
-
-        <p className="mt-4 text-center text-sm text-muted">
-          계정이 없나요?{" "}
-          <Link href="/signup" className="font-medium text-primary hover:underline">
-            회원가입
-          </Link>
-        </p>
       </form>
-    </main>
+
+      <AuthFooter>
+        계정이 없나요?{" "}
+        <Link href="/signup" className={authLink}>
+          회원가입
+        </Link>
+      </AuthFooter>
+    </AuthShell>
   );
 }
 
@@ -119,7 +111,7 @@ export default function LoginPage() {
 function PasswordChangedNotice() {
   if (useSearchParams().get("changed") !== "1") return null;
   return (
-    <p role="status" className="mt-6 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">
+    <p role="status" className="rounded-lg bg-primary-soft px-3.5 py-2.5 text-[13px] font-medium text-primary-ink">
       비밀번호가 바뀌었어요. 새 비밀번호로 다시 로그인하세요.
     </p>
   );

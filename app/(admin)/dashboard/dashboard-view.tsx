@@ -1,241 +1,177 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { JobStatusBadge, ProgressBadge, VerdictBadge } from "@/components/badge";
-import { ApiError, api, type Schemas } from "@/lib/api";
-import { type Bar, computeStats } from "./stats";
-
-type Report = Schemas["ReportItem"];
-type ReportList = Schemas["ReportList"];
-type ProgramList = Schemas["ProgramList"];
-
-// 통계 API가 없어 목록을 모두 받아 브라우저에서 계산한다. 해커톤 규모 기준 상한.
-const PAGE_SIZE = 100;
-const MAX_PAGES = 50;
-
-async function fetchAllReports(signal: AbortSignal): Promise<{ items: Report[]; truncated: boolean }> {
-  const items: Report[] = [];
-  let cursor: string | null = null;
-  for (let page = 0; page < MAX_PAGES; page++) {
-    const query = new URLSearchParams({ limit: String(PAGE_SIZE) });
-    if (cursor) query.set("cursor", cursor);
-    const data: ReportList = await api<ReportList>(`/reports?${query}`, { signal });
-    items.push(...data.items);
-    if (!data.next_cursor) return { items, truncated: false };
-    cursor = data.next_cursor;
-  }
-  return { items, truncated: true };
-}
-
-const toneBar: Record<Bar["tone"], string> = {
-  neutral: "bg-gray-400",
-  info: "bg-primary",
-  progress: "bg-blue-500",
-  success: "bg-emerald-500",
-  warning: "bg-amber-500",
-  danger: "bg-red-500",
-};
+import { Icon } from "@/components/ui";
+import { ApiError } from "@/lib/api";
+import { MAX_REPORTS, type Report, needsInfo, reportCount, useAllReports } from "../reports/all-reports";
+import { STATUS_CARDS, computeStats } from "./stats";
 
 export function DashboardView() {
-  const reports = useQuery({
-    queryKey: ["dashboard", "reports"],
-    queryFn: ({ signal }) => fetchAllReports(signal),
-  });
-  const programs = useQuery({ queryKey: ["programs"], queryFn: () => api<ProgramList>("/programs") });
+  const reports = useAllReports();
 
-  if (reports.isPending) return <p className="text-sm text-muted">신고를 불러오는 중…</p>;
+  if (reports.isPending) return <DashboardSkeleton />;
   if (reports.isError) {
     const error = reports.error;
     const detail = error instanceof ApiError && error.requestId ? ` (요청 ID: ${error.requestId})` : "";
     return (
-      <p role="alert" className="text-sm text-red-600">
-        신고 목록을 불러오지 못했어요. {error.message}
+      <p role="alert" className="text-sm text-danger">
+        제보를 불러오지 못했어요. {error.message}
         {detail}
       </p>
     );
   }
 
-  const stats = computeStats(reports.data.items, programs.data?.items ?? []);
-  const rate = stats.reproducedRate === null ? "-" : `${Math.round(stats.reproducedRate * 100)}%`;
+  const stats = computeStats(reports.data.items);
+  const rate = stats.autoReproductionRate;
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-10">
       {reports.data.truncated && (
-        <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
-          신고가 많아 최근 {PAGE_SIZE * MAX_PAGES}건까지만 계산했어요.
+        <p className="rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning-ink">
+          제보가 많아 최근 {MAX_REPORTS.toLocaleString("ko-KR")}건까지만 계산했어요.
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric label="전체 신고" value={stats.total.toLocaleString("ko-KR")} unit="건" />
-        <Metric
-          label="AI 재현 성공률"
-          value={rate}
-          note={
-            stats.judgedCount > 0
-              ? `판정된 ${stats.judgedCount}건 중 재현됨 ${stats.reproduced}건`
-              : "판정된 신고가 아직 없어요."
-          }
-        />
-        <Metric
-          label="미처리"
-          value={stats.pending.toLocaleString("ko-KR")}
-          unit="건"
-          note="처리 상태가 신규인 신고예요."
-        />
-        <Metric
-          label="평균 처리 시간"
-          value={stats.avgCloseMs === null ? "-" : formatDuration(stats.avgCloseMs)}
-          note={
-            stats.closedCount > 0
-              ? `마감된 ${stats.closedCount}건의 접수부터 마감까지`
-              : "마감된 신고가 아직 없어요."
-          }
-        />
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Panel title="진행 단계" description="신규 신고 → 재현 중 → 재현 완료 → 버그 수정 중 → 마감">
-          <BarList bars={stats.stages} total={stats.total} />
-        </Panel>
-        <Panel title="재현 판정 분포" description="최근 검증 job의 판정이에요. 재현 안 됨은 버그가 없다는 뜻이 아니에요.">
-          <BarList bars={stats.verdict} total={stats.total} />
-        </Panel>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Panel
-          title="최근 신고"
-          action={
-            <Link href="/reports" className="text-xs font-medium text-primary hover:underline">
-              전체 보기
+      <Block title="확인할 제보">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+          {STATUS_CARDS.map((card) => (
+            <Link
+              key={card.progress}
+              href={`/reports?status=${card.progress}`}
+              className="transition hover:brightness-125"
+            >
+              <MetricCard label={card.label}>
+                <span className="text-5xl font-semibold text-foreground">{stats.count(card.progress)}</span>
+              </MetricCard>
             </Link>
-          }
-        >
-          {stats.recent.length === 0 ? (
-            <p className="text-sm text-muted">아직 신고가 없어요.</p>
-          ) : (
-            <ul className="-mx-2 divide-y divide-border">
-              {stats.recent.map((report) => (
-                <li key={report.id}>
-                  <Link
-                    href={`/reports/${encodeURIComponent(report.id)}`}
-                    className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-lg px-2 py-3 hover:bg-background"
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">
-                        <span className="mr-1.5 font-mono text-xs text-muted">BUG-{report.number}</span>
-                        {report.title}
-                      </span>
-                      <span className="block text-xs text-muted">
-                        {stats.programNames.get(report.program_id) ?? report.program_id} ·{" "}
-                        {new Date(report.created_at).toLocaleString("ko-KR")}
-                      </span>
-                    </span>
-                    <span className="flex shrink-0 gap-1.5">
-                      <ProgressBadge value={report.progress} />
-                      <JobStatusBadge value={report.latest_job?.status} />
-                      <VerdictBadge value={report.latest_job?.verdict} />
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
-
-        <div className="space-y-6">
-          <Panel title="사이트별 신고">
-            {stats.byProgram.length === 0 ? (
-              <p className="text-sm text-muted">아직 신고가 없어요.</p>
-            ) : (
-              <BarList bars={stats.byProgram} total={stats.total} />
-            )}
-          </Panel>
-          <Panel title="AI 분류 현황">
-            <p className="text-sm text-muted">-</p>
-            <p className="mt-1 text-xs text-muted">백엔드 지원 필요: 신고 목록 응답에 AI 분류가 없어 계산할 수 없어요.</p>
-          </Panel>
+          ))}
         </div>
-      </div>
+      </Block>
+
+      <Block title="현재 확인 사항">
+        <div className="flex flex-col gap-4 rounded-xl bg-surface px-3 py-5">
+          {stats.attention.length === 0 ? (
+            <p className="px-3 py-2.5 text-lg text-subtle">지금 확인할 제보가 없어요.</p>
+          ) : (
+            stats.attention.map((report) => <AttentionRow key={report.id} report={report} />)
+          )}
+        </div>
+      </Block>
+
+      <Block
+        title={
+          <>
+            현황 <span className="text-xl font-medium">(이번 주)</span>
+          </>
+        }
+      >
+        <div className="grid gap-4 md:grid-cols-3">
+          <MetricCard label="자동 재현율">
+            {rate === null ? (
+              <Empty note="이번 주 판정된 제보가 없어요" />
+            ) : (
+              <Accent value={String(Math.round(rate * 100))} unit="%" />
+            )}
+          </MetricCard>
+          <MetricCard label="평균 재현 소요">
+            {/* 실행 시간이 목록 응답에 없어 계산할 수 없다(Metaphor-back#59). */}
+            <Empty note="집계 기능 준비 중" />
+          </MetricCard>
+          <MetricCard label="수정 확인 완료">
+            <Accent value={String(stats.fixVerified)} unit="건" />
+          </MetricCard>
+        </div>
+      </Block>
     </div>
   );
 }
 
-function Metric({ label, value, unit, note }: { label: string; value: string; unit?: string; note?: string }) {
+function Block({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-      <h2 className="text-sm text-muted">{label}</h2>
-      <p className="mt-2 text-3xl font-bold">
-        {value}
-        {unit && value !== "-" && <span className="ml-1 text-base font-medium text-muted">{unit}</span>}
-      </p>
-      {note && <p className="mt-2 text-xs text-muted">{note}</p>}
-    </section>
-  );
-}
-
-function Panel({
-  title,
-  description,
-  action,
-  children,
-}: {
-  title: string;
-  description?: string;
-  action?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-      <div className="mb-4 flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-base font-semibold">{title}</h2>
-          {description && <p className="mt-0.5 text-xs text-muted">{description}</p>}
-        </div>
-        {action}
-      </div>
+    <section className="flex flex-col gap-3.5">
+      <h2 className="text-[28px] font-semibold tracking-[-0.04em]">{title}</h2>
       {children}
     </section>
   );
 }
 
-function BarList({ bars, total }: { bars: Bar[]; total: number }) {
+function MetricCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <ul className="space-y-3">
-      {bars.map((bar) => {
-        const percent = total > 0 ? (bar.count / total) * 100 : 0;
-        return (
-          <li key={bar.key}>
-            <div className="mb-1 flex justify-between gap-2 text-sm">
-              <span className="truncate">{bar.label}</span>
-              <span className="shrink-0 tabular-nums text-muted">
-                {bar.count}건 · {Math.round(percent)}%
-              </span>
-            </div>
-            <div
-              className="h-2 overflow-hidden rounded-full bg-background"
-              role="meter"
-              aria-label={bar.label}
-              aria-valuemin={0}
-              aria-valuemax={total}
-              aria-valuenow={bar.count}
-            >
-              <div className={`h-full rounded-full ${toneBar[bar.tone]}`} style={{ width: `${percent}%` }} />
-            </div>
-          </li>
-        );
-      })}
-    </ul>
+    <div className="flex h-40 flex-col justify-between rounded-xl bg-surface px-6 py-4">
+      <span className="text-xl font-medium text-body">{label}</span>
+      <span className="border-t-2 border-line" aria-hidden />
+      <span className="leading-none">{children}</span>
+    </div>
   );
 }
 
-/** 1시간 미만은 분, 하루 미만은 시간, 그 이상은 일 단위로 보여준다. */
-function formatDuration(ms: number): string {
-  const minutes = ms / 60_000;
-  if (minutes < 60) return `${Math.max(1, Math.round(minutes))}분`;
-  const hours = minutes / 60;
-  if (hours < 24) return `${hours.toFixed(1)}시간`;
-  return `${(hours / 24).toFixed(1)}일`;
+function Accent({ value, unit }: { value: string; unit: string }) {
+  return (
+    <span className="font-bold tracking-[-0.04em] text-primary-ink">
+      <span className="text-5xl">{value}</span>
+      <span className="text-[40px]">{unit}</span>
+    </span>
+  );
+}
+
+function Empty({ note }: { note: string }) {
+  return (
+    <span className="flex items-baseline gap-3">
+      <span className="text-5xl font-bold text-faint">-</span>
+      <span className="text-sm text-muted">{note}</span>
+    </span>
+  );
+}
+
+function AttentionRow({ report }: { report: Report }) {
+  const reproduced = report.progress === "reproduced";
+  const badge = reproduced ? "재현됨" : needsInfo(report) ? "정보 부족" : "재현 안 됨";
+  const note = reproduced
+    ? null
+    : needsInfo(report)
+      ? "재현에 필요한 정보가 있어요. 질문에 답하면 다시 시도해요."
+      : "재현되지 않았어요. 필요한 정보를 확인하세요.";
+
+  return (
+    <Link
+      href={`/reports/${encodeURIComponent(report.id)}`}
+      className="flex items-center justify-between gap-4 rounded-lg px-3 py-2.5 hover:bg-chip/60"
+    >
+      <span className="flex min-w-0 items-center gap-2.5">
+        <span
+          className={`inline-flex w-[78px] shrink-0 justify-center rounded-lg px-2.5 py-1.5 text-base leading-none font-bold text-surface ${
+            reproduced ? "bg-primary" : "bg-warning"
+          }`}
+        >
+          {badge}
+        </span>
+        <span className="flex min-w-0 flex-col gap-1">
+          <span className="truncate text-lg font-medium">{report.title || "(제목 없음)"}</span>
+          {note && <span className="truncate text-xs text-body">{note}</span>}
+        </span>
+      </span>
+      <span className="flex shrink-0 items-center gap-2.5 text-lg text-label">
+        제보 {reportCount(report)}건
+        <Icon name="arrow-right" size={20} className="h-5 w-2.5" />
+      </span>
+    </Link>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="flex animate-pulse flex-col gap-10" aria-busy="true" aria-label="대시보드를 불러오는 중">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+        {Array.from({ length: 5 }, (_, index) => (
+          <div key={index} className="h-40 rounded-xl bg-surface" />
+        ))}
+      </div>
+      <div className="h-56 rounded-xl bg-surface" />
+      <div className="grid gap-4 md:grid-cols-3">
+        {Array.from({ length: 3 }, (_, index) => (
+          <div key={index} className="h-40 rounded-xl bg-surface" />
+        ))}
+      </div>
+    </div>
+  );
 }

@@ -1,242 +1,339 @@
 "use client";
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
-import { JobStatusBadge, ProgressBadge, VerdictBadge } from "@/components/badge";
+import { Avatar, Icon, StatusBadge, formatShortTime } from "@/components/ui";
 import { ApiError, api, type Schemas } from "@/lib/api";
-import * as labels from "@/lib/labels";
-
-type ReportList = Schemas["ReportList"];
-type ProgramList = Schemas["ProgramList"];
+import { useSession } from "@/lib/auth";
+import { orgKeys } from "../org/ui";
+import { MAX_REPORTS, type Report, hintClass, reportCount, reportHint, useAllReports } from "./all-reports";
 
 const PAGE_SIZE = 20;
 
-const SOURCES = [
-  { value: "widget", label: "위젯" },
-  { value: "platform", label: "플랫폼" },
-] as const;
+type Option = { value: string; label: string };
 
-const dateFormat = new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeStyle: "short" });
+// 값이 ""이면 기본값. 기본 상태 필터는 마감된 신고를 뺀다.
+const STATUS_OPTIONS: Option[] = [
+  { value: "", label: "전체" },
+  { value: "new", label: "신규" },
+  { value: "reproducing", label: "재현 중" },
+  { value: "reproduced", label: "재현됨" },
+  { value: "triaged", label: "재현 안 됨" },
+  { value: "fixing", label: "버그 수정 중" },
+  { value: "dismissed", label: "버그 아님·중복" },
+  { value: "closed", label: "마감" },
+];
 
-/** URL 쿼리의 필터를 읽고, 필터가 바뀌면 페이지 위치(cursor 스택)를 처음으로 되돌린다. */
+const PERIOD_OPTIONS: Option[] = [
+  { value: "", label: "전체" },
+  { value: "1", label: "오늘" },
+  { value: "7", label: "최근 7일" },
+  { value: "30", label: "최근 30일" },
+];
+
+const SORT_OPTIONS: Option[] = [
+  { value: "", label: "최신순" },
+  { value: "oldest", label: "오래된순" },
+  { value: "reports", label: "신고 많은 순" },
+];
+
+type Filters = { status: string; period: string; assignee: string; mine: boolean; sort: string; page: number };
+
+function readFilters(params: URLSearchParams): Filters {
+  const page = Number(params.get("page"));
+  return {
+    status: params.get("status") ?? "",
+    period: params.get("period") ?? "",
+    assignee: params.get("assignee") ?? "",
+    mine: params.get("mine") === "1",
+    sort: params.get("sort") ?? "",
+    page: Number.isInteger(page) && page > 1 ? page : 1,
+  };
+}
+
+function applyFilters(reports: Report[], filters: Filters, userId: string, now = Date.now()): Report[] {
+  const since = filters.period
+    ? new Date(new Date(now).setHours(0, 0, 0, 0)).getTime() - (Number(filters.period) - 1) * 86_400_000
+    : null;
+  const filtered = reports.filter((report) => {
+    if (filters.status ? report.progress !== filters.status : report.progress === "closed") return false;
+    if (since !== null && Date.parse(report.created_at) < since) return false;
+    if (filters.mine && report.assignee?.id !== userId) return false;
+    if (filters.assignee === "none" && report.assignee) return false;
+    if (filters.assignee && filters.assignee !== "none" && report.assignee?.id !== filters.assignee) return false;
+    return true;
+  });
+  const byDate = (a: Report, b: Report) => b.created_at.localeCompare(a.created_at);
+  if (filters.sort === "oldest") return filtered.sort((a, b) => byDate(b, a));
+  if (filters.sort === "reports") return filtered.sort((a, b) => b.duplicate_count - a.duplicate_count || byDate(a, b));
+  return filtered.sort(byDate);
+}
+
 export function ReportsList() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const programId = searchParams.get("program_id") ?? "";
-  const source = searchParams.get("source") ?? "";
-  const assignee = searchParams.get("assignee") === "me" ? "me" : "";
+  const { user, membership } = useSession();
+  const filters = readFilters(searchParams);
+  const reports = useAllReports();
+  const members = useQuery({
+    queryKey: orgKeys.members(membership.org_id),
+    queryFn: () => api<Schemas["MemberResponse"][]>(`/orgs/${encodeURIComponent(membership.org_id)}/members`),
+  });
 
-  const programs = useQuery({ queryKey: ["programs"], queryFn: () => api<ProgramList>("/programs") });
-
-  function setFilter(name: "program_id" | "source" | "assignee", value: string) {
+  /** 필터가 바뀌면 첫 페이지로 돌아간다. */
+  function update(changes: Partial<Record<keyof Filters, string>>) {
     const params = new URLSearchParams(searchParams.toString());
-    if (value) params.set(name, value);
-    else params.delete(name);
+    for (const [name, value] of Object.entries(changes)) {
+      if (value) params.set(name, value);
+      else params.delete(name);
+    }
+    if (!("page" in changes)) params.delete("page");
     const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname);
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: "page" in changes });
   }
 
+  const assigneeOptions: Option[] = [
+    { value: "", label: "전체" },
+    { value: "none", label: "없음" },
+    ...(members.data ?? [])
+      .filter((member) => member.is_active)
+      .map((member) => ({ value: member.user_id, label: member.display_name ?? member.email })),
+  ];
+
+  const visible = reports.data ? applyFilters(reports.data.items, filters, user.id) : [];
+  const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const page = Math.min(filters.page, pageCount);
+  const rows = visible.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const statusLabel = STATUS_OPTIONS.find((option) => option.value === filters.status)?.label;
+
   return (
-    <>
-      <div className="flex flex-wrap items-end gap-4">
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-muted">사이트</span>
-          <select
-            value={programId}
-            onChange={(e) => setFilter("program_id", e.target.value)}
-            className="min-w-48 rounded-lg border border-border bg-surface px-3 py-2"
+    <div className="flex flex-col gap-6">
+      <header className="flex flex-col gap-2">
+        <h1 className="text-[28px] font-semibold">제보 목록</h1>
+        <p className="text-[15px] text-subtle">
+          {reports.data
+            ? filters.status
+              ? `${statusLabel} 신고 ${visible.length.toLocaleString("ko-KR")}건`
+              : `처리 중인 신고 ${visible.length.toLocaleString("ko-KR")}건`
+            : "신고를 불러오는 중…"}
+        </p>
+      </header>
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <FilterSelect label="상태" value={filters.status} options={STATUS_OPTIONS} onChange={(v) => update({ status: v })} />
+          <FilterSelect label="기간" value={filters.period} options={PERIOD_OPTIONS} onChange={(v) => update({ period: v })} />
+          <FilterSelect
+            label="담당자"
+            value={filters.assignee}
+            options={assigneeOptions}
+            onChange={(v) => update({ assignee: v, mine: "" })}
+          />
+          <button
+            type="button"
+            aria-pressed={filters.mine}
+            onClick={() => update({ mine: filters.mine ? "" : "1", assignee: "" })}
+            className={`rounded-lg border px-3.5 py-[9px] text-sm leading-none font-medium transition ${
+              filters.mine ? "border-primary bg-primary-soft text-primary-ink" : "border-border text-label hover:bg-surface"
+            }`}
           >
-            <option value="">전체</option>
-            {programs.data?.items.map((program) => (
-              <option key={program.id} value={program.id}>
-                {program.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-muted">유입 경로</span>
-          <select
-            value={source}
-            onChange={(e) => setFilter("source", e.target.value)}
-            className="min-w-32 rounded-lg border border-border bg-surface px-3 py-2"
-          >
-            <option value="">전체</option>
-            {SOURCES.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-muted">담당자</span>
-          <select
-            value={assignee}
-            onChange={(e) => setFilter("assignee", e.target.value)}
-            className="min-w-32 rounded-lg border border-border bg-surface px-3 py-2"
-          >
-            <option value="">전체</option>
-            <option value="me">내 담당</option>
-          </select>
-        </label>
-        {programs.error && <p className="text-sm text-red-600">사이트 목록을 불러오지 못했어요.</p>}
+            내 담당만
+          </button>
+        </div>
+        <FilterSelect label="정렬" value={filters.sort} options={SORT_OPTIONS} onChange={(v) => update({ sort: v })} />
       </div>
-      <ReportsTable
-        key={`${programId}|${source}|${assignee}`}
-        programId={programId}
-        source={source}
-        assignee={assignee}
-        programNames={new Map(programs.data?.items.map((p) => [p.id, p.name]))}
-      />
-    </>
+
+      {reports.isPending ? (
+        <TableSkeleton />
+      ) : reports.isError ? (
+        <ErrorMessage error={reports.error} />
+      ) : (
+        <>
+          {reports.data.truncated && (
+            <p className="rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning-ink">
+              신고가 많아 최근 {MAX_REPORTS.toLocaleString("ko-KR")}건 안에서만 찾았어요.
+            </p>
+          )}
+          <ReportTable rows={rows} />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[13px] text-muted">
+              {filters.status === "closed"
+                ? "수정 확인을 통과해 마감된 신고예요."
+                : "수정 확인을 통과해 마감된 신고는 목록에서 빠집니다."}
+            </p>
+            <Pagination page={page} pageCount={pageCount} onChange={(next) => update({ page: String(next) })} />
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
-function ReportsTable({
-  programId,
-  source,
-  assignee,
-  programNames,
+function FilterSelect({
+  label,
+  value,
+  options,
+  onChange,
 }: {
-  programId: string;
-  source: string;
-  assignee: string;
-  programNames: Map<string, string>;
+  label: string;
+  value: string;
+  options: Option[];
+  onChange: (value: string) => void;
 }) {
-  const router = useRouter();
-  // 지나온 페이지의 cursor. 첫 페이지는 null.
-  const [cursors, setCursors] = useState<(string | null)[]>([null]);
-  const cursor = cursors[cursors.length - 1];
-
-  const reports = useQuery({
-    queryKey: ["reports", { programId, source, assignee, cursor }],
-    queryFn: () => {
-      const params = new URLSearchParams({ limit: String(PAGE_SIZE) });
-      if (cursor) params.set("cursor", cursor);
-      if (programId) params.set("program_id", programId);
-      if (source) params.set("source", source);
-      if (assignee) params.set("assignee", assignee);
-      return api<ReportList>(`/reports?${params}`);
-    },
-    placeholderData: keepPreviousData,
-  });
-
-  if (reports.isPending) return <p className="text-sm text-muted">불러오는 중…</p>;
-  if (reports.error) return <ErrorMessage error={reports.error} />;
-
-  const { items, next_cursor: nextCursor } = reports.data;
-
   return (
-    <div className="flex flex-col gap-4">
-      {/* contain: 표 너비가 main(flex item)을 밀어 넓히지 않고 이 안에서 가로 스크롤되게 한다. */}
-      <div className="overflow-x-auto rounded-xl border border-border bg-surface [contain:inline-size]">
-        <table className="w-full whitespace-nowrap text-left text-sm">
-          <thead className="border-b border-border text-muted">
-            <tr>
-              <th className="px-4 py-3 font-medium">번호</th>
-              <th className="px-4 py-3 font-medium">제목</th>
-              <th className="px-4 py-3 font-medium">사이트</th>
-              <th className="px-4 py-3 font-medium">유형</th>
-              <th className="px-4 py-3 font-medium">진행 단계</th>
-              <th className="px-4 py-3 font-medium">담당자</th>
-              <th className="px-4 py-3 font-medium">실행 상태</th>
-              <th className="px-4 py-3 font-medium">재현 판정</th>
-              <th className="px-4 py-3 font-medium">중복</th>
-              <th className="px-4 py-3 font-medium">접수 시각</th>
-            </tr>
-          </thead>
-          <tbody className={reports.isPlaceholderData ? "opacity-60" : undefined}>
-            {items.length === 0 ? (
-              <tr>
-                <td colSpan={10} className="px-4 py-12 text-center text-muted">
-                  신고가 없어요.
-                </td>
-              </tr>
-            ) : (
-              items.map((report) => (
-                <tr
-                  key={report.id}
-                  onClick={() => router.push(`/reports/${report.id}`)}
-                  className="cursor-pointer border-b border-border last:border-0 hover:bg-background"
-                >
-                  <td className="px-4 py-3 font-mono text-xs text-muted">BUG-{report.number}</td>
-                  <td className="max-w-80 px-4 py-3">
-                    <Link
-                      href={`/reports/${report.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="block truncate font-medium hover:text-primary"
-                    >
-                      {report.title || <span className="text-muted">(제목 없음)</span>}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3">
-                    {programNames.get(report.program_id) ?? <span className="text-muted">{report.program_id}</span>}
-                  </td>
-                  <td className="px-4 py-3">{labels.errorType(report.error_type).label}</td>
-                  <td className="px-4 py-3">
-                    <ProgressBadge value={report.progress} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <AssigneeName assignee={report.assignee} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <JobStatusBadge value={report.latest_job?.status} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <VerdictBadge value={report.latest_job?.verdict} />
-                  </td>
-                  <td className="px-4 py-3">
-                    {report.duplicate_count > 0 ? `${report.duplicate_count}건` : ""}
-                  </td>
-                  <td className="px-4 py-3 text-muted">
-                    {dateFormat.format(new Date(report.created_at))}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+    <label className="relative flex items-center gap-2 rounded-lg bg-surface py-[9px] pr-3 pl-3.5 text-sm leading-none focus-within:ring-2 focus-within:ring-primary/60">
+      <span className="text-subtle">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="cursor-pointer appearance-none bg-transparent pr-5 font-medium text-foreground outline-none"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value} className="bg-surface">
+            {option.label}
+          </option>
+        ))}
+      </select>
+      <Icon name="chevron-down" size={14} className="pointer-events-none absolute right-3" />
+    </label>
+  );
+}
+
+// 상태 132 · 제목 · 번호 96 · 신고 56 · 담당 132 · 접수 96 (Figma 제보 목록)
+const columns = "grid grid-cols-[132px_minmax(0,1fr)_96px_56px_132px_96px] items-center gap-4 px-6";
+
+function ReportTable({ rows }: { rows: Report[] }) {
+  return (
+    // contain: 표 너비가 main을 밀어 넓히지 않고 이 안에서 가로 스크롤되게 한다.
+    <div className="overflow-x-auto rounded-xl bg-surface [contain:inline-size]">
+      <div role="table" aria-label="제보 목록" className="min-w-[860px]">
+        <div role="row" className={`${columns} border-b border-line py-3.5 text-[13px] text-muted`}>
+          <span role="columnheader">상태</span>
+          <span role="columnheader">제목</span>
+          <span role="columnheader">번호</span>
+          <span role="columnheader" className="text-right">
+            신고
+          </span>
+          <span role="columnheader">담당</span>
+          <span role="columnheader">접수</span>
+        </div>
+        {rows.length === 0 ? (
+          <p className="px-6 py-16 text-center text-[15px] text-subtle">조건에 맞는 신고가 없어요.</p>
+        ) : (
+          rows.map((report) => <ReportRow key={report.id} report={report} />)
+        )}
       </div>
-      <div className="flex justify-end gap-2">
+    </div>
+  );
+}
+
+function ReportRow({ report }: { report: Report }) {
+  const hint = reportHint(report);
+  const done = report.progress === "dismissed" || report.progress === "closed";
+  return (
+    <Link
+      role="row"
+      href={`/reports/${encodeURIComponent(report.id)}`}
+      className={`${columns} border-t border-line py-4 transition first:border-t-0 hover:bg-chip/40`}
+    >
+      <span role="cell">
+        <StatusBadge progress={report.progress} />
+      </span>
+      <span role="cell" className="flex min-w-0 flex-col gap-1">
+        <span className={`truncate text-base font-medium ${done ? "text-muted" : ""}`}>
+          {report.title || "(제목 없음)"}
+        </span>
+        {hint.text && <span className={`truncate text-[13px] ${hintClass[hint.tone]}`}>{hint.text}</span>}
+      </span>
+      <span role="cell" className="font-mono text-[13px] text-body">
+        BUG-{report.number}
+      </span>
+      <span role="cell" className="text-right text-[15px] font-medium text-body">
+        {reportCount(report)}
+      </span>
+      <span role="cell" className="min-w-0">
+        <AssigneeCell assignee={report.assignee} />
+      </span>
+      <span role="cell" className="text-sm text-subtle">
+        {formatShortTime(report.created_at)}
+      </span>
+    </Link>
+  );
+}
+
+/** 회사를 나간 담당자는 서버가 이름과 이메일을 가린다(active: false). */
+function AssigneeCell({ assignee }: { assignee: Schemas["Assignee"] | null }) {
+  if (!assignee) return <span className="text-sm text-faint">없음</span>;
+  if (!assignee.active) return <span className="text-sm text-faint">(나간 멤버)</span>;
+  const name = assignee.display_name ?? assignee.email ?? "";
+  return (
+    <span className="flex min-w-0 items-center gap-2">
+      <Avatar name={name} />
+      <span className="truncate text-sm font-medium text-body">{name}</span>
+    </span>
+  );
+}
+
+/** 현재 페이지 앞뒤로 최대 5개 번호를 보여준다. */
+function Pagination({ page, pageCount, onChange }: { page: number; pageCount: number; onChange: (page: number) => void }) {
+  if (pageCount <= 1) return null;
+  const first = Math.max(1, Math.min(page - 2, pageCount - 4));
+  const pages = Array.from({ length: Math.min(5, pageCount) }, (_, index) => first + index);
+  const arrow = "flex size-8 items-center justify-center rounded-lg hover:bg-surface disabled:opacity-40 disabled:hover:bg-transparent";
+  return (
+    <nav aria-label="페이지" className="flex items-center gap-1">
+      <button type="button" className={arrow} disabled={page === 1} onClick={() => onChange(page - 1)} aria-label="이전 페이지">
+        <Icon name="page-prev" size={16} />
+      </button>
+      {pages.map((number) => (
         <button
+          key={number}
           type="button"
-          disabled={cursors.length === 1 || reports.isFetching}
-          onClick={() => setCursors((stack) => stack.slice(0, -1))}
-          className="rounded-lg border border-border bg-surface px-4 py-2 text-sm disabled:opacity-40"
+          onClick={() => onChange(number)}
+          aria-current={number === page ? "page" : undefined}
+          className={`flex size-8 items-center justify-center rounded-lg text-sm ${
+            number === page ? "bg-chip font-semibold text-foreground" : "text-subtle hover:bg-surface"
+          }`}
         >
-          이전
+          {number}
         </button>
-        <button
-          type="button"
-          disabled={!nextCursor || reports.isFetching}
-          onClick={() => nextCursor && setCursors((stack) => [...stack, nextCursor])}
-          className="rounded-lg border border-border bg-surface px-4 py-2 text-sm disabled:opacity-40"
-        >
-          다음
-        </button>
-      </div>
+      ))}
+      <button
+        type="button"
+        className={arrow}
+        disabled={page === pageCount}
+        onClick={() => onChange(page + 1)}
+        aria-label="다음 페이지"
+      >
+        <Icon name="page-next" size={16} />
+      </button>
+    </nav>
+  );
+}
+
+function TableSkeleton() {
+  return (
+    <div className="animate-pulse rounded-xl bg-surface" aria-busy="true" aria-label="제보를 불러오는 중">
+      <div className="h-12 border-b border-line" />
+      {Array.from({ length: 6 }, (_, index) => (
+        <div key={index} className="flex items-center gap-4 border-t border-line px-6 py-4 first:border-t-0">
+          <span className="h-6 w-16 rounded-lg bg-chip" />
+          <span className="h-4 flex-1 rounded bg-chip" />
+        </div>
+      ))}
     </div>
   );
 }
 
 function ErrorMessage({ error }: { error: Error }) {
   return (
-    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+    <div role="alert" className="rounded-xl bg-surface px-6 py-4 text-sm text-danger">
       <p>신고 목록을 불러오지 못했어요. {error.message}</p>
       {error instanceof ApiError && error.requestId && (
-        <p className="mt-1 text-xs text-red-600">요청 ID: {error.requestId}</p>
+        <p className="mt-1 text-xs text-muted">요청 ID: {error.requestId}</p>
       )}
     </div>
   );
-}
-
-/** 회사를 나간 담당자는 서버가 이름과 이메일을 가린다(active: false). */
-export function AssigneeName({ assignee }: { assignee: Schemas["Assignee"] | null }) {
-  if (!assignee) return <span className="text-muted">-</span>;
-  if (!assignee.active) return <span className="text-muted">(나간 멤버)</span>;
-  return <span>{assignee.display_name ?? assignee.email}</span>;
 }

@@ -2,12 +2,12 @@ import * as labels from "@/lib/labels";
 import type { Lookup, Tone } from "@/lib/labels";
 
 const toneClass: Record<Tone, string> = {
-  neutral: "bg-gray-100 text-gray-700",
-  info: "bg-primary-soft text-primary",
-  progress: "bg-blue-50 text-blue-700",
-  success: "bg-emerald-50 text-emerald-700",
-  warning: "bg-amber-50 text-amber-700",
-  danger: "bg-red-50 text-red-700",
+  neutral: "bg-chip text-subtle",
+  info: "bg-primary-soft text-primary-ink",
+  progress: "bg-sky-500/15 text-info",
+  success: "bg-primary/15 text-primary-ink",
+  warning: "bg-warning-soft text-warning-ink",
+  danger: "bg-danger/10 text-danger",
 };
 
 export function Badge({ tone = "neutral", children }: { tone?: Tone; children: React.ReactNode }) {

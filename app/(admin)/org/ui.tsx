@@ -13,11 +13,11 @@ export const orgKeys = {
 export const roles = ["developer", "reviewer", "admin"] as const;
 
 export const buttonClass =
-  "shrink-0 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60";
+  "shrink-0 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60";
 export const secondaryButtonClass =
   "shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:bg-background disabled:opacity-60";
 export const dangerButtonClass =
-  "shrink-0 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-60";
+  "shrink-0 rounded-lg border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 disabled:opacity-60";
 export const inputClass =
   "rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary";
 
@@ -89,7 +89,7 @@ export function ConfirmDialog({
       </h3>
       <p className="mt-2 text-sm text-muted">{description}</p>
       {error != null && (
-        <p role="alert" className="mt-3 text-sm text-red-600">
+        <p role="alert" className="mt-3 text-sm text-danger">
           {orgErrorMessage(error)}
         </p>
       )}

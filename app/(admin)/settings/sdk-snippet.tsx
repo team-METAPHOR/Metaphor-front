@@ -39,7 +39,7 @@ export function SdkSnippet({
         {key ? (
           <code className="rounded bg-background px-2 py-0.5 font-mono text-xs">{key}</code>
         ) : (
-          <span className="rounded bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+          <span className="rounded bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning-ink">
             키 없음, 재발급 필요
           </span>
         )}
@@ -94,7 +94,7 @@ function RotateKey({ programId, isAdmin, hasKey }: { programId: string; isAdmin:
             rotate.reset();
             dialog.current?.showModal();
           }}
-          className="shrink-0 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:border-border disabled:text-muted disabled:hover:bg-transparent"
+          className="shrink-0 rounded-lg border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 disabled:cursor-not-allowed disabled:border-border disabled:text-muted disabled:hover:bg-transparent"
         >
           키 재발급
         </button>
@@ -114,7 +114,7 @@ function RotateKey({ programId, isAdmin, hasKey }: { programId: string; isAdmin:
             : "새 키를 발급해요. 발급 후 고객사 사이트에 설치 코드를 넣으세요."}
         </p>
         {rotate.isError && (
-          <p role="alert" className="mt-3 text-sm text-red-600">
+          <p role="alert" className="mt-3 text-sm text-danger">
             재발급하지 못했어요. {errorMessage(rotate.error)}
           </p>
         )}

@@ -1,68 +1,40 @@
-import type { Schemas } from "@/lib/api";
-import * as labels from "@/lib/labels";
-import type { Tone } from "@/lib/labels";
+import { type Report, startOfWeek } from "../reports/all-reports";
 
-type Report = Schemas["ReportItem"];
-type Program = Schemas["ProgramSummary"];
+/** 확인할 제보 카드 순서. 카드를 누르면 같은 상태로 거른 제보 목록으로 간다. */
+export const STATUS_CARDS = [
+  { progress: "reproduced", label: "재현 완료" },
+  { progress: "reproducing", label: "재현 중" },
+  { progress: "triaged", label: "재현 안 됨" },
+  { progress: "new", label: "신규 제보" },
+  { progress: "fixing", label: "버그 수정 중" },
+] as const;
 
-export type Bar = { key: string; label: string; count: number; tone: Tone };
+const ATTENTION_LIMIT = 5;
 
-// 대시보드 5단계 + 단계 밖(버그 아님·중복). reproduced와 triaged는 둘 다 "재현 완료" 단계다.
-const STAGE_ORDER = ["new", "reproducing", "reproduced", "fixing", "closed", "dismissed"];
-const stageOf = (report: Report) => (report.progress === "triaged" ? "reproduced" : report.progress);
-const VERDICT_ORDER = ["reproduced", "not_reproduced", "inconclusive", ""];
+export function computeStats(reports: Report[], now = new Date()) {
+  const byProgress = new Map<string, number>();
+  for (const report of reports) byProgress.set(report.progress, (byProgress.get(report.progress) ?? 0) + 1);
 
-function countBy(reports: Report[], keyOf: (report: Report) => string): Map<string, number> {
-  const counts = new Map<string, number>();
-  for (const report of reports) {
-    const key = keyOf(report);
-    counts.set(key, (counts.get(key) ?? 0) + 1);
-  }
-  return counts;
-}
+  // 사람이 지금 봐야 하는 신고: 재현됐거나, 재현되지 않아 정보가 필요한 신고
+  const attention = reports
+    .filter((report) => report.progress === "reproduced" || report.progress === "triaged")
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .slice(0, ATTENTION_LIMIT);
 
-/** 알려진 값은 정해진 순서로 0건이어도 보여주고, 모르는 값은 뒤에 붙인다. */
-function toBars(counts: Map<string, number>, order: string[], lookup: labels.Lookup): Bar[] {
-  const keys = [...order, ...[...counts.keys()].filter((key) => !order.includes(key))];
-  return keys.map((key) => ({ key, count: counts.get(key) ?? 0, ...lookup(key) }));
-}
+  const weekStart = startOfWeek(now).getTime();
+  const inWeek = (value: string | null) => value != null && Date.parse(value) >= weekStart;
 
-export function computeStats(reports: Report[], programs: Program[]) {
-  const judged = reports.filter((report) => report.latest_job?.verdict != null);
+  // 이번 주 접수 중 판정이 난 신고의 재현 비율
+  const judged = reports.filter((report) => inWeek(report.created_at) && report.latest_job?.verdict != null);
   const reproduced = judged.filter((report) => report.latest_job?.verdict === "reproduced").length;
-  // 사람이 아직 처리 방향(수정/버그 아님)을 정하지 않은 신고
-  const pending = reports.filter((report) => report.workflow_status === "received").length;
-
-  // 마감된 신고의 접수→마감 평균 시간(ms). 마감은 재시험 통과 때만 생긴다.
-  const closedDurations = reports
-    .filter((report) => report.closed_at != null)
-    .map((report) => Date.parse(report.closed_at!) - Date.parse(report.created_at))
-    .filter((ms) => Number.isFinite(ms) && ms >= 0);
-  const avgCloseMs =
-    closedDurations.length > 0 ? closedDurations.reduce((sum, ms) => sum + ms, 0) / closedDurations.length : null;
-
-  const programNames = new Map(programs.map((program) => [program.id, program.name]));
-  const byProgram = [...countBy(reports, (report) => report.program_id)]
-    .map(([id, count]) => ({ key: id, label: programNames.get(id) ?? id, count, tone: "info" as Tone }))
-    .sort((a, b) => b.count - a.count);
-
-  const recent = [...reports].sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 5);
 
   return {
-    total: reports.length,
-    judgedCount: judged.length,
+    count: (progress: string) => byProgress.get(progress) ?? 0,
+    attention,
     /** 판정된 신고가 없으면 null */
-    reproducedRate: judged.length > 0 ? reproduced / judged.length : null,
-    reproduced,
-    pending,
-    closedCount: closedDurations.length,
-    /** 마감된 신고가 없으면 null */
-    avgCloseMs,
-    stages: toBars(countBy(reports, stageOf), STAGE_ORDER, labels.progress),
-    // null(판정 전)은 빈 문자열 키로 모은다. lookup이 "판정 전"으로 표시한다.
-    verdict: toBars(countBy(reports, (r) => r.latest_job?.verdict ?? ""), VERDICT_ORDER, labels.verdict),
-    byProgram,
-    recent,
-    programNames,
+    autoReproductionRate: judged.length > 0 ? reproduced / judged.length : null,
+    judgedCount: judged.length,
+    /** 이번 주 수정 확인(재시험)을 통과해 마감된 신고 */
+    fixVerified: reports.filter((report) => inWeek(report.closed_at)).length,
   };
 }

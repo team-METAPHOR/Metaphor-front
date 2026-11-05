@@ -4,6 +4,7 @@ import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@ta
 import { useState } from "react";
 import { isUnauthenticated } from "@/lib/api";
 import { meQueryKey } from "@/lib/auth";
+import { ThemeSync } from "@/lib/theme";
 
 function createQueryClient() {
   // 세션이 끊겨 어떤 요청이든 401이 나면 사용자 정보를 다시 확인한다.
@@ -31,5 +32,10 @@ function createQueryClient() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [client] = useState(createQueryClient);
-  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={client}>
+      <ThemeSync />
+      {children}
+    </QueryClientProvider>
+  );
 }

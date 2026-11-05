@@ -192,7 +192,7 @@ export function MembersCard({ orgId, isAdmin }: { orgId: string; isAdmin: boolea
         </div>
       )}
       {changeRole.isError && pending == null && (
-        <p role="alert" className="mt-3 text-sm text-red-600">
+        <p role="alert" className="mt-3 text-sm text-danger">
           역할을 바꾸지 못했어요. {orgErrorMessage(changeRole.error)}
         </p>
       )}
