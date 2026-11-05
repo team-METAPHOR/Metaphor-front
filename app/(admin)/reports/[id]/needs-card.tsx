@@ -7,6 +7,8 @@ import { Card, button } from "@/components/ui";
 import { api, type Schemas } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { settingsLink } from "../../settings-modal/links";
+import { TestAccountForm, notInUseReason, useTestAccount } from "../../settings/test-account-form";
+import { RevalidateButton } from "./job-actions";
 import { reportKeys, useHandoff } from "./queries";
 import { ErrorText, Inset } from "./ui";
 
@@ -44,7 +46,7 @@ export function NeedsCard({ reportId, programId, job }: { reportId: string; prog
           </ul>
         </Inset>
       )}
-      <TestAccount programId={programId} />
+      <TestAccount reportId={reportId} programId={programId} />
       <Inset className="flex items-center justify-between gap-4 py-4 pr-4 pl-[18px]">
         <div className="flex min-w-0 flex-col gap-1">
           <span className="text-[15px] font-semibold">스테이징 주소 지정</span>
@@ -120,78 +122,84 @@ function Questions({ reportId, jobId, questions }: { reportId: string; jobId: st
   );
 }
 
-const inputClass =
-  "w-full rounded-lg border border-border bg-background px-3.5 py-[11px] text-sm outline-none placeholder:text-faint focus:border-primary disabled:opacity-70";
-
 /**
- * 테스트 계정 등록. "등록하기"를 누르면 아래로 입력칸이 펼쳐진다.
- * 계정을 저장하는 서버 API가 아직 없어(Metaphor-back#61) 저장 버튼은 막아 둔다.
+ * 테스트 계정 등록·수정. "등록하기"를 누르면 아래로 설정 모달과 같은 입력 폼이 펼쳐진다.
+ * 저장하면 같은 자리에서 처음부터 다시 재현을 요청할 수 있다. 등록은 관리자만 한다.
  */
-function TestAccount({ programId }: { programId: string }) {
+function TestAccount({ reportId, programId }: { reportId: string; programId: string }) {
+  const { isAdmin } = useSession();
   const [open, setOpen] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const account = useTestAccount(programId);
   const program = useQuery({
     queryKey: ["programs", programId],
     queryFn: () => api<Schemas["ProgramResponse"]>(`/programs/${encodeURIComponent(programId)}`),
   });
-  const registered = program.data?.scope.has_session === true;
+  const data = account.data;
+  const configured = data?.configured === true;
+  const scope = program.data?.scope;
+
+  const status = !data
+    ? "로그인이 필요한 화면을 재현할 때 써요"
+    : configured
+      ? data.in_use
+        ? `${data.login_id_masked ?? "저장된 계정"}으로 로그인해서 재현해요`
+        : `저장됐지만 실행에 쓰이지 않아요. ${notInUseReason(data, scope)}`
+      : scope?.has_session
+        ? "운영자가 연결한 로그인 세션으로 재현해요"
+        : "로그인이 필요한 화면을 재현할 때 써요";
 
   return (
-    <div className={`overflow-hidden rounded-lg bg-surface-inset ${open ? "border border-border-strong" : ""}`}>
+    <div className={`rounded-lg bg-surface-inset ${open ? "border border-border-strong" : ""}`}>
       <div className="flex items-center justify-between gap-4 py-4 pr-4 pl-[18px]">
         <div className="flex min-w-0 flex-col gap-1">
-          <span className="text-[15px] font-semibold">테스트 계정 등록</span>
-          <span className="text-[13px] text-subtle">
-            {registered ? "이 사이트에는 로그인 세션이 등록돼 있어요" : "로그인이 필요한 화면을 재현할 때 써요"}
+          <span className="text-[15px] font-semibold">{configured ? "테스트 계정" : "테스트 계정 등록"}</span>
+          <span className={`text-[13px] ${configured && data && !data.in_use ? "text-warning-ink" : "text-subtle"}`}>
+            {status}
           </span>
+          {account.isError && <ErrorText error={account.error} prefix="테스트 계정을 불러오지 못했어요." />}
         </div>
-        <button
-          type="button"
-          className={button.ghost}
-          aria-expanded={open}
-          aria-controls="test-account-form"
-          onClick={() => setOpen((value) => !value)}
-        >
-          {open ? "닫기" : "등록하기"}
-        </button>
+        {isAdmin ? (
+          data && (
+            <button
+              type="button"
+              className={button.ghost}
+              aria-expanded={open}
+              aria-controls="test-account-form"
+              onClick={() => {
+                setOpen((value) => !value);
+                setSaved(false);
+              }}
+            >
+              {open ? "닫기" : configured ? "수정하기" : "등록하기"}
+            </button>
+          )
+        ) : (
+          <span className="shrink-0 text-xs text-muted">관리자만 등록할 수 있어요</span>
+        )}
       </div>
-      {open && (
-        <form
-          id="test-account-form"
-          className="flex flex-col gap-4 px-[18px] pt-1 pb-[18px]"
-          onSubmit={(event) => event.preventDefault()}
-        >
+      {open && data && (
+        <div id="test-account-form" className="flex flex-col gap-4 px-[18px] pt-1 pb-[18px]">
           <span className="h-px bg-line" aria-hidden />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="flex flex-col gap-2">
-              <span className="text-[13px] font-medium text-label">로그인 아이디</span>
-              <input className={`${inputClass} font-mono`} autoComplete="off" placeholder="qa-member@example.com" />
-            </label>
-            <label className="flex flex-col gap-2">
-              <span className="text-[13px] font-medium text-label">비밀번호</span>
-              <input type="password" className={inputClass} autoComplete="new-password" />
-            </label>
-          </div>
-          <label className="flex flex-col gap-2">
-            <span className="text-[13px] font-medium text-label">로그인 화면 주소 (선택)</span>
-            <input className={`${inputClass} font-mono`} placeholder="/login" />
-            <span className="text-xs text-muted">
-              비워 두면 신고된 화면에서 로그인 화면으로 이동할 때 자동으로 찾아요.
-            </span>
-          </label>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="min-w-0 flex-1 text-xs text-muted">
-              테스트 계정 저장 기능은 준비 중이에요. 비밀번호는 암호화해서 저장하고 재현할 때만 써요.
-            </p>
-            <div className="flex gap-2">
-              <button type="button" className={button.ghost} onClick={() => setOpen(false)}>
-                취소
-              </button>
-              <button type="submit" className={button.primary} disabled title="서버 준비 중">
-                저장하고 다시 시도
-              </button>
-            </div>
-          </div>
-        </form>
+          <TestAccountForm
+            programId={programId}
+            account={data}
+            submitLabel="저장"
+            onCancel={() => setOpen(false)}
+            onSaved={() => {
+              setOpen(false);
+              setSaved(true);
+            }}
+          />
+        </div>
+      )}
+      {saved && !open && (
+        <div className="flex flex-wrap items-center justify-between gap-3 px-[18px] pb-4">
+          <p role="status" className="min-w-0 flex-1 text-[13px] text-label">
+            테스트 계정을 저장했어요. 처음부터 다시 재현하면 이 계정으로 로그인해요.
+          </p>
+          <RevalidateButton reportId={reportId} programId={programId} label="다시 재현" primary />
+        </div>
       )}
     </div>
   );

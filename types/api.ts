@@ -1955,6 +1955,11 @@ export interface components {
              * @default false
              */
             has_test_account: boolean;
+            /**
+             * Credentials Blocked By Http
+             * @default false
+             */
+            credentials_blocked_by_http: boolean;
             /** Reset Adapter */
             reset_adapter: string;
             /**
@@ -1999,6 +2004,12 @@ export interface components {
             password: string;
             /** Login Path */
             login_path?: string | null;
+            /** Submit Path */
+            submit_path?: string | null;
+            /** Success Path */
+            success_path?: string | null;
+            /** Success Selector */
+            success_selector?: string | null;
         };
         /**
          * TestAccountResponse
@@ -2016,6 +2027,12 @@ export interface components {
             login_id_masked: string | null;
             /** Login Path */
             login_path: string | null;
+            /** Submit Path */
+            submit_path?: string | null;
+            /** Success Path */
+            success_path?: string | null;
+            /** Success Selector */
+            success_selector?: string | null;
             /** Updated At */
             updated_at: string | null;
         };

@@ -19,7 +19,7 @@ export class ApiError extends Error {
 }
 
 type RequestOptions = {
-  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   /** 재시도해도 한 번만 처리되도록 Idempotency-Key 헤더를 붙인다. */
   idempotent?: boolean;
