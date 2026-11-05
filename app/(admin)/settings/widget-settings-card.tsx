@@ -141,7 +141,7 @@ export function WidgetSettingsCard({
         <fieldset disabled={!isAdmin || save.isPending} className="space-y-6">
           <div className="divide-y divide-border">
             {toggles.map(({ field, label, help }) => (
-              <label key={field} className="flex items-center justify-between gap-4 py-3 first:pt-0">
+              <label key={field} className="relative flex items-center justify-between gap-4 py-3 first:pt-0">
                 <span>
                   <span className="block text-sm font-medium">{label}</span>
                   <span className="block text-xs text-muted">{help}</span>
