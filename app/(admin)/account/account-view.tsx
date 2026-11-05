@@ -140,10 +140,10 @@ function PasswordForm() {
           aria-invalid={mismatch}
           className={`${inputClass} aria-invalid:border-red-400`}
         />
-        {mismatch && <p className="mt-1 text-xs text-red-600">새 비밀번호가 서로 달라요.</p>}
+        {mismatch && <p className="mt-1 text-xs text-danger">새 비밀번호가 서로 달라요.</p>}
 
         {change.isError && (
-          <p role="alert" className="mt-4 text-sm text-red-600">
+          <p role="alert" className="mt-4 text-sm text-danger">
             {changeErrorMessage(change.error)}
           </p>
         )}
@@ -151,7 +151,7 @@ function PasswordForm() {
         <button
           type="submit"
           disabled={change.isPending || change.isSuccess || mismatch}
-          className="mt-6 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+          className="mt-6 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
         >
           {change.isPending ? "바꾸는 중…" : change.isSuccess ? "로그인 화면으로 이동 중…" : "비밀번호 변경"}
         </button>

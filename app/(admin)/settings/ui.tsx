@@ -43,7 +43,7 @@ export function errorMessage(error: unknown): string {
 
 export function ErrorText({ error, what }: { error: unknown; what: string }) {
   return (
-    <p role="alert" className="text-sm text-red-600">
+    <p role="alert" className="text-sm text-danger">
       {what}을(를) 불러오지 못했어요. {errorMessage(error)}
     </p>
   );

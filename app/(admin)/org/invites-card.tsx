@@ -113,17 +113,17 @@ export function InvitesCard({ orgId }: { orgId: string }) {
         </button>
       </form>
       {create.isError && (
-        <p role="alert" className="mt-2 text-sm text-red-600">
+        <p role="alert" className="mt-2 text-sm text-danger">
           초대를 만들지 못했어요. {orgErrorMessage(create.error)}
         </p>
       )}
 
       {created && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-medium text-amber-800">
+        <div className="mt-4 rounded-xl border border-warning/40 bg-warning-soft p-4">
+          <p className="text-sm font-medium text-warning-ink">
             {roleLabel(created.role).label} 초대 코드가 만들어졌어요. 이 코드는 지금 한 번만 보여요.
           </p>
-          <p className="mt-1 text-xs text-amber-800">
+          <p className="mt-1 text-xs text-warning-ink">
             창을 닫거나 새로고침하면 다시 볼 수 없어요. 받는 사람은 가입·로그인 후 &lsquo;시작하기&rsquo; 화면의
             &lsquo;초대 코드로 참여&rsquo;에 이 코드를 넣으면 돼요. {formatDateTime(created.expires_at)}까지 쓸 수 있어요.
           </p>
@@ -137,7 +137,7 @@ export function InvitesCard({ orgId }: { orgId: string }) {
             <button
               type="button"
               onClick={() => setCreated(null)}
-              className="text-xs text-amber-800 underline-offset-2 hover:underline"
+              className="text-xs text-warning-ink underline-offset-2 hover:underline"
             >
               확인했어요, 닫기
             </button>

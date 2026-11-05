@@ -89,7 +89,7 @@ function OriginVerificationAdmin({ programId }: { programId: string }) {
       action={<Badge tone={verified ? "success" : "warning"}>{verified ? "확인됨" : "확인 필요"}</Badge>}
     >
       {!verified && (
-        <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <p className="mb-4 rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning-ink">
           확인 전에는 위젯으로 신고를 받을 수 없고, AI 재현 검증도 시작되지 않아요.
         </p>
       )}
@@ -118,13 +118,13 @@ function OriginVerificationAdmin({ programId }: { programId: string }) {
       </dl>
 
       {check.isError && (
-        <p role="alert" className="mt-4 text-sm text-red-600">
+        <p role="alert" className="mt-4 text-sm text-danger">
           확인하지 못했어요. {checkErrorMessage(check.error)}
           {verified && " 이전 확인은 그대로 유지돼요."}
         </p>
       )}
       {check.isSuccess && (
-        <p role="status" className="mt-4 text-sm text-green-700">
+        <p role="status" className="mt-4 text-sm text-primary-ink">
           도메인 소유가 확인됐어요.
         </p>
       )}
@@ -134,7 +134,7 @@ function OriginVerificationAdmin({ programId }: { programId: string }) {
           type="button"
           disabled={check.isPending}
           onClick={() => check.mutate()}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
         >
           {check.isPending ? "확인 중…" : verified ? "다시 확인하기" : "확인하기"}
         </button>

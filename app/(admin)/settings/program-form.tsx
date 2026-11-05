@@ -414,7 +414,7 @@ function Row({
       {help && <p className="mt-0.5 text-xs text-muted">{help}</p>}
       <div className="mt-1.5">{children}</div>
       {errors[field] && (
-        <p id={`program-${field}-error`} role="alert" className="mt-1 text-xs text-red-600">
+        <p id={`program-${field}-error`} role="alert" className="mt-1 text-xs text-danger">
           {errors[field]}
         </p>
       )}

@@ -143,7 +143,7 @@ export function WidgetSettingsCard({
                 />
                 <span
                   aria-hidden
-                  className="relative h-6 w-11 shrink-0 rounded-full bg-gray-300 transition-colors after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:bg-primary peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40 peer-disabled:opacity-50"
+                  className="relative h-6 w-11 shrink-0 rounded-full bg-chip transition-colors after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:bg-primary peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40 peer-disabled:opacity-50"
                 />
               </label>
             ))}
@@ -169,7 +169,7 @@ export function WidgetSettingsCard({
                     <button
                       type="button"
                       onClick={() => setApproved(approved.filter((o) => o !== origin))}
-                      className="shrink-0 text-xs text-muted hover:text-red-600"
+                      className="shrink-0 text-xs text-muted hover:text-danger"
                       aria-label={`${origin} 삭제`}
                     >
                       삭제
@@ -225,7 +225,7 @@ export function WidgetSettingsCard({
                   </button>
                 </div>
                 {originError && (
-                  <p role="alert" className="mt-1.5 text-xs text-red-600">
+                  <p role="alert" className="mt-1.5 text-xs text-danger">
                     {originError}
                   </p>
                 )}
@@ -235,7 +235,7 @@ export function WidgetSettingsCard({
         </fieldset>
 
         {save.isError && (
-          <p role="alert" className="mt-4 text-sm text-red-600">
+          <p role="alert" className="mt-4 text-sm text-danger">
             저장하지 못했어요. {errorMessage(save.error)}
           </p>
         )}
@@ -253,7 +253,7 @@ export function WidgetSettingsCard({
             <button
               type="submit"
               disabled={!dirty || save.isPending}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
             >
               {save.isPending ? "저장 중…" : "저장"}
             </button>

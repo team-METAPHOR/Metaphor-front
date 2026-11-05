@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { AuthGate } from "@/lib/auth";
-import { SidebarNav, SidebarNavLinks } from "./sidebar-nav";
-import { UserMenu } from "./user-menu";
+import { SettingsModal } from "./settings-modal/settings-modal";
+import { Sidebar } from "./sidebar-nav";
 
 // 세션 쿠키(sid)는 Path=/api 라서 페이지 요청에 붙지 않는다. 그래서 로그인 확인은
 // 브라우저의 AuthGate가 하고, 서버 프리렌더에서는 children이 그려지지 않는다.
@@ -10,19 +10,19 @@ export const instant = false;
 
 export default function AdminLayout({ children }: LayoutProps<"/">) {
   return (
-    <AuthGate>
-      <div className="flex min-h-screen">
-        <aside className="flex w-60 shrink-0 flex-col bg-sidebar px-4 py-6 text-sidebar-foreground">
-          <div className="mb-8 px-3 text-lg font-bold text-white">Metaphor</div>
-          <div className="flex-1">
-            <Suspense fallback={<SidebarNavLinks pathname="" />}>
-              <SidebarNav />
-            </Suspense>
-          </div>
-          <UserMenu />
-        </aside>
-        <main className="flex-1 p-8">{children}</main>
-      </div>
-    </AuthGate>
+    <div className="min-h-screen">
+      <AuthGate>
+        <div className="flex min-h-screen">
+          <Sidebar />
+          <main className="min-w-0 flex-1 px-6 py-10 md:px-[52px] md:py-14">
+            <div className="mx-auto max-w-[1096px]">{children}</div>
+          </main>
+        </div>
+        {/* useSearchParams는 Suspense 안에서만 쓸 수 있다(cacheComponents). */}
+        <Suspense fallback={null}>
+          <SettingsModal />
+        </Suspense>
+      </AuthGate>
+    </div>
   );
 }

@@ -135,7 +135,7 @@ function RenameForm({ orgId, current, onDone }: { orgId: string; current: string
         </button>
       </div>
       {rename.isError && (
-        <p role="alert" className="mt-1.5 text-sm text-red-600">
+        <p role="alert" className="mt-1.5 text-sm text-danger">
           이름을 바꾸지 못했어요. {orgErrorMessage(rename.error)}
         </p>
       )}

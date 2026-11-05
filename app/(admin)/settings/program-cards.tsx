@@ -23,7 +23,7 @@ type Program = Schemas["ProgramResponse"];
 type ProgramPatch = Schemas["ProgramPatch"];
 
 const primaryButton =
-  "rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50";
+  "rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50";
 const secondaryButton = "rounded-lg border border-border px-4 py-2 text-sm hover:bg-background disabled:opacity-50";
 
 /** 사이트 등록(관리자). 성공하면 새 사이트를 돌려준다. */
@@ -56,11 +56,11 @@ export function CreateProgramCard({ onCreated, onCancel }: { onCreated: (program
         <fieldset disabled={create.isPending}>
           <ProgramFields draft={draft} errors={errors} onChange={setDraft} />
         </fieldset>
-        <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <p className="mt-4 rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning-ink">
           등록한 뒤 도메인 소유 확인을 마쳐야 위젯으로 신고를 받고 AI 재현 검증을 시작할 수 있어요.
         </p>
         {create.isError && (
-          <p role="alert" className="mt-4 text-sm text-red-600">
+          <p role="alert" className="mt-4 text-sm text-danger">
             등록하지 못했어요. {programErrorMessage(create.error)}
           </p>
         )}
@@ -187,7 +187,7 @@ function ProgramEditForm({ program, onDone }: { program: Program; onDone: () => 
         </fieldset>
 
         {(originChanged || scopeChanged) && (
-          <div role="note" className="mt-4 space-y-1.5 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          <div role="note" className="mt-4 space-y-1.5 rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning-ink">
             {originChanged && (
               <p>
                 <strong>도메인이 바뀌어요.</strong> 새 도메인은 소유 확인을 다시 받아야 하고, 확인 전에는 위젯 신고와 AI 재현
@@ -207,7 +207,7 @@ function ProgramEditForm({ program, onDone }: { program: Program; onDone: () => 
         )}
 
         {save.isError && (
-          <p role="alert" className="mt-4 text-sm text-red-600">
+          <p role="alert" className="mt-4 text-sm text-danger">
             저장하지 못했어요. {programErrorMessage(save.error)}
           </p>
         )}
