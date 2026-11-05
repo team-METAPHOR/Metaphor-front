@@ -1,14 +1,15 @@
 import { Suspense } from "react";
+import { ReportDetail } from "./report-detail";
 
-async function ReportTitle({ params }: { params: PageProps<"/reports/[id]">["params"] }) {
+async function ReportDetailLoader({ params }: { params: PageProps<"/reports/[id]">["params"] }) {
   const { id } = await params;
-  return <h1 className="text-2xl font-bold">신고 {id}</h1>;
+  return <ReportDetail reportId={id} />;
 }
 
 export default function ReportDetailPage({ params }: PageProps<"/reports/[id]">) {
   return (
-    <Suspense>
-      <ReportTitle params={params} />
+    <Suspense fallback={<p className="text-sm text-muted">불러오는 중…</p>}>
+      <ReportDetailLoader params={params} />
     </Suspense>
   );
 }
