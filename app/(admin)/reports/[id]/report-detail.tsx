@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Card, Icon, StatusBadge } from "@/components/ui";
 import { ApiError, type Schemas } from "@/lib/api";
 import { AssignmentCard } from "./assignment-card";
+import { DiagnosisCard } from "./diagnosis-card";
 import { EvidenceCard, LogEstimateCard } from "./evidence";
 import { CancelJobButton, RevalidateButton } from "./job-actions";
 import { NeedsCard } from "./needs-card";
@@ -220,6 +221,7 @@ function JobLayout({
       main={
         <>
           {!older && <NeedsCard reportId={report.id} programId={report.program_id} job={repro} />}
+          <DiagnosisCard reportId={report.id} jobId={repro.id} />
           {resultError}
           <AttemptsCard attempts={attempts} stepCount={steps.length} reproduced={false} />
           <ClosestPlanCard reportId={report.id} attempts={attempts} />
@@ -240,7 +242,12 @@ function JobLayout({
 function StoppedLayout({ report, job, history }: { report: Report; job: Job; history: React.ReactNode }) {
   return (
     <Columns
-      main={<StopCard report={report} job={job} />}
+      main={
+        <>
+          <StopCard report={report} job={job} />
+          <DiagnosisCard reportId={report.id} jobId={job.id} />
+        </>
+      }
       side={
         <>
           <EvidenceCard report={report} compact />
