@@ -8,15 +8,34 @@ import { Card, CopyButton, errorMessage, widgetSettingsKey } from "./ui";
 type WidgetSettings = Schemas["WidgetSettingsResponse"];
 type ProjectKey = Schemas["ProjectKeyResponse"];
 
-// Metaphor-sdk README의 설치 방법. 배포 주소가 아직 정해지지 않아 자리표시자로 둔다.
-const SDK_SRC = "https://<SDK 배포 주소>/sdk/metaphor.js";
-const API_BASE = "https://<Metaphor API 주소>";
+type Install = { projectKey: string; apiBase: string; sdkUrl: string; integrity: string };
 
-function snippet(projectKey: string): string {
-  return `<script src="${SDK_SRC}"
-        data-metaphor-project-key="${projectKey}"
-        data-metaphor-api-base="${API_BASE}" defer></script>`;
+/** 설치 코드 재료. 서버가 하나라도 주지 않으면(null) 코드를 만들지 않는다. */
+function installInfo(settings: WidgetSettings): Install | null {
+  const { public_project_key: projectKey, api_base: apiBase, sdk_url: sdkUrl, sdk_integrity: integrity } = settings;
+  if (!projectKey || !apiBase || !sdkUrl || !integrity || !URL.canParse(apiBase)) return null;
+  return { projectKey, apiBase, sdkUrl, integrity };
 }
+
+// crossorigin이 없으면 브라우저가 integrity를 검사하지 못해 스크립트를 막는다.
+function snippet({ projectKey, apiBase, sdkUrl, integrity }: Install): string {
+  return `<script src="${sdkUrl}"
+        integrity="${integrity}"
+        crossorigin="anonymous"
+        data-metaphor-project-key="${projectKey}"
+        data-metaphor-api-base="${apiBase}" defer></script>`;
+}
+
+/** SDK 번들과 위젯 API가 같은 origin에서 나온다. data:는 화면 캡처용. */
+function csp(apiBase: string): string {
+  const origin = new URL(apiBase).origin;
+  return `Content-Security-Policy: script-src 'self' ${origin};
+                         connect-src 'self' ${origin};
+                         img-src 'self' data:`;
+}
+
+const codeBlock =
+  "overflow-x-auto rounded-lg border border-border bg-code p-4 font-mono text-xs leading-5 text-body";
 
 export function SdkSnippet({
   programId,
@@ -28,11 +47,12 @@ export function SdkSnippet({
   isAdmin: boolean;
 }) {
   const key = settings.public_project_key;
+  const install = installInfo(settings);
   return (
     <Card
       title="SDK 설치"
       description="고객사 사이트의 <head>에 아래 코드를 넣으세요."
-      action={key ? <CopyButton text={snippet(key)} label="코드 복사" /> : undefined}
+      action={install ? <CopyButton text={snippet(install)} label="코드 복사" /> : undefined}
     >
       <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
         <span className="text-muted">Project key</span>
@@ -45,16 +65,25 @@ export function SdkSnippet({
         )}
       </div>
 
-      {key ? (
+      {install ? (
         <>
-          <pre className="overflow-x-auto rounded-lg border border-border bg-code p-4 font-mono text-xs leading-5 text-body">
-            {snippet(key)}
-          </pre>
+          <pre className={codeBlock}>{snippet(install)}</pre>
           <p className="mt-2 text-xs text-muted">
-            <code>&lt;SDK 배포 주소&gt;</code>, <code>&lt;Metaphor API 주소&gt;</code>는 실제 배포 주소로 바꿔 넣으세요. CSP를
-            쓰면 script-src에 SDK 주소, connect-src에 API 주소, img-src에 data:가 필요해요.
+            SDK 버전이 오르면 설치 코드도 바뀌어요. 이전 코드는 동작을 멈추니 새 코드로 바꿔 넣으세요.
+          </p>
+
+          <div className="mt-5 flex items-center justify-between gap-4">
+            <p className="text-sm font-medium">CSP를 쓰는 사이트라면</p>
+            <CopyButton text={csp(install.apiBase)} label="CSP 복사" />
+          </div>
+          <pre className={`mt-2 ${codeBlock}`}>{csp(install.apiBase)}</pre>
+          <p className="mt-2 text-xs text-muted">
+            script-src는 SDK 로드, connect-src는 신고 전송에 필요해요. img-src에 data:가 없으면 화면 사진 없이 글로만
+            신고돼요.
           </p>
         </>
+      ) : key ? (
+        <p className="text-sm text-muted">설치 코드를 준비 중이에요. 잠시 후 다시 확인하세요.</p>
       ) : (
         <p className="text-sm text-muted">
           project key가 없어서 설치 코드를 만들 수 없어요. {isAdmin ? "아래에서 키를 재발급하세요." : "관리자에게 키 재발급을 요청하세요."}
