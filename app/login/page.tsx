@@ -2,8 +2,8 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { ApiError, api, type Schemas } from "@/lib/api";
 import { homePath, meQueryKey, useMe } from "@/lib/auth";
 
@@ -57,6 +57,11 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold">Metaphor</h1>
         <p className="mt-1 text-sm text-muted">버그 신고 관리</p>
 
+        {/* useSearchParams는 Suspense 안에서만 쓸 수 있다(cacheComponents). */}
+        <Suspense fallback={null}>
+          <PasswordChangedNotice />
+        </Suspense>
+
         <label className="mt-8 block text-sm font-medium" htmlFor="email">
           이메일
         </label>
@@ -107,5 +112,15 @@ export default function LoginPage() {
         </p>
       </form>
     </main>
+  );
+}
+
+/** 비밀번호 변경 뒤 모든 세션이 끊겨 이 화면으로 온 경우(/login?changed=1) 안내한다. */
+function PasswordChangedNotice() {
+  if (useSearchParams().get("changed") !== "1") return null;
+  return (
+    <p role="status" className="mt-6 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">
+      비밀번호가 바뀌었어요. 새 비밀번호로 다시 로그인하세요.
+    </p>
   );
 }
