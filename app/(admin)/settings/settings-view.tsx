@@ -1,12 +1,14 @@
 "use client";
 
-import { type UseQueryResult, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { Badge } from "@/components/badge";
 import { api, type Schemas } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { role as roleLabel } from "@/lib/labels";
 import { OriginVerificationCard } from "./origin-verification-card";
+import { CreateProgramCard, ProgramCard } from "./program-cards";
 import { Card, ErrorText, widgetSettingsKey } from "./ui";
 import { SdkSnippet } from "./sdk-snippet";
 import { WidgetSettingsCard } from "./widget-settings-card";
@@ -19,28 +21,39 @@ export function SettingsView() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { isAdmin } = useSession();
   const programs = useQuery({ queryKey: ["programs"], queryFn: () => api<ProgramList>("/programs") });
-
-  if (programs.isPending) return <p className="text-sm text-muted">사이트 목록을 불러오는 중…</p>;
-  if (programs.isError) return <ErrorText error={programs.error} what="사이트 목록" />;
-
-  const items = programs.data.items;
-  if (items.length === 0) {
-    return (
-      <Card>
-        <p className="text-sm text-muted">등록된 사이트가 없어요.</p>
-      </Card>
-    );
-  }
-
-  const requested = searchParams.get("program");
-  const selected = items.find((item) => item.id === requested) ?? items[0];
+  const [creating, setCreating] = useState(false);
+  // 방금 등록한 사이트. 도메인 소유 확인 안내를 띄운다.
+  const [createdId, setCreatedId] = useState<string | null>(null);
 
   function select(id: string) {
     const params = new URLSearchParams(searchParams.toString());
     params.set("program", id);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
+
+  function created(program: Program) {
+    setCreating(false);
+    setCreatedId(program.id);
+    select(program.id);
+  }
+
+  if (programs.isPending) return <p className="text-sm text-muted">사이트 목록을 불러오는 중…</p>;
+  if (programs.isError) return <ErrorText error={programs.error} what="사이트 목록" />;
+
+  const items = programs.data.items;
+  if (items.length === 0) {
+    if (isAdmin) return <CreateProgramCard onCreated={created} />;
+    return (
+      <Card>
+        <p className="text-sm text-muted">등록된 사이트가 없어요. 관리자에게 사이트 등록을 요청하세요.</p>
+      </Card>
+    );
+  }
+
+  const requested = searchParams.get("program");
+  const selected = items.find((item) => item.id === requested) ?? items[0];
 
   return (
     <div className="space-y-6">
@@ -52,7 +65,10 @@ export function SettingsView() {
           <select
             id="program-select"
             value={selected.id}
-            onChange={(event) => select(event.target.value)}
+            onChange={(event) => {
+              setCreating(false);
+              select(event.target.value);
+            }}
             className="min-w-64 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
           >
             {items.map((item) => (
@@ -63,10 +79,30 @@ export function SettingsView() {
           </select>
           <span className="text-sm text-muted">{selected.base_url}</span>
           <Badge>{roleLabel(selected.role).label}</Badge>
+          {isAdmin && !creating && (
+            <button
+              type="button"
+              onClick={() => setCreating(true)}
+              className="ml-auto rounded-lg border border-border px-3 py-2 text-sm font-medium hover:bg-background"
+            >
+              사이트 추가
+            </button>
+          )}
         </div>
       </Card>
 
-      <ProgramDetail key={selected.id} programId={selected.id} />
+      {creating ? (
+        <CreateProgramCard onCreated={created} onCancel={() => setCreating(false)} />
+      ) : (
+        <>
+          {createdId === selected.id && (
+            <p role="status" className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800">
+              사이트를 등록했어요. 아래 <strong>도메인 소유 확인</strong>을 마쳐야 위젯 신고와 AI 재현 검증이 시작돼요.
+            </p>
+          )}
+          <ProgramDetail key={selected.id} programId={selected.id} />
+        </>
+      )}
     </div>
   );
 }
@@ -85,7 +121,7 @@ function ProgramDetail({ programId }: { programId: string }) {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div className="space-y-6">
-        <ProgramInfo query={program} />
+        <ProgramCard query={program} />
         <OriginVerificationCard programId={programId} isAdmin={isAdmin} />
         {settings.isPending && (
           <Card>
@@ -109,67 +145,5 @@ function ProgramDetail({ programId }: { programId: string }) {
         />
       )}
     </div>
-  );
-}
-
-function ProgramInfo({ query }: { query: UseQueryResult<Program> }) {
-  if (query.isPending) {
-    return (
-      <Card title="사이트 정보">
-        <p className="text-sm text-muted">불러오는 중…</p>
-      </Card>
-    );
-  }
-  if (query.isError) {
-    return (
-      <Card title="사이트 정보">
-        <ErrorText error={query.error} what="사이트 정보" />
-      </Card>
-    );
-  }
-
-  const program = query.data;
-  const { scope } = program;
-  return (
-    <Card title="사이트 정보" description="읽기 전용이에요.">
-      <dl className="grid grid-cols-[8rem_minmax(0,1fr)] gap-x-4 gap-y-3 text-sm">
-        <dt className="text-muted">이름</dt>
-        <dd className="font-medium">{program.name}</dd>
-        <dt className="text-muted">상태</dt>
-        <dd>
-          <Badge tone={program.status === "active" ? "success" : "neutral"}>{programStatusLabel(program.status)}</Badge>
-        </dd>
-        <dt className="text-muted">기본 URL</dt>
-        <dd className="break-all font-mono text-xs leading-5">{scope.base_url}</dd>
-        <dt className="text-muted">허용 경로</dt>
-        <dd>
-          <PathList paths={scope.allowed_path_prefixes} empty="전체" />
-        </dd>
-        <dt className="text-muted">제외 경로</dt>
-        <dd>
-          <PathList paths={scope.excluded_path_prefixes} empty="없음" />
-        </dd>
-        <dt className="text-muted">보관 기간</dt>
-        <dd>{program.retention_days}일</dd>
-      </dl>
-    </Card>
-  );
-}
-
-function programStatusLabel(status: string): string {
-  const labels: Record<string, string> = { draft: "준비 중", active: "운영 중", paused: "일시 중지", closed: "종료" };
-  return labels[status] ?? status;
-}
-
-function PathList({ paths, empty }: { paths: string[]; empty: string }) {
-  if (paths.length === 0) return <span className="text-muted">{empty}</span>;
-  return (
-    <ul className="flex flex-wrap gap-1.5">
-      {paths.map((path) => (
-        <li key={path} className="rounded bg-background px-1.5 py-0.5 font-mono text-xs">
-          {path}
-        </li>
-      ))}
-    </ul>
   );
 }
