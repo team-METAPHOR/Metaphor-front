@@ -10,7 +10,7 @@ import { settingsLink } from "../../settings-modal/links";
 import { reportKeys } from "./queries";
 import { ErrorText } from "./ui";
 
-/** 새 검증(fresh). 확인을 한 번 더 받는다. reviewer, admin만 보인다. */
+/** 새 검증(fresh). 확인을 한 번 더 받는다. developer, admin만 보인다. */
 export function RevalidateButton({
   reportId,
   label,
@@ -82,7 +82,7 @@ export function RevalidateButton({
   );
 }
 
-/** 진행 중인 job 취소. reviewer, admin만 보인다. */
+/** 진행 중인 job 취소. developer, admin만 보인다. */
 export function CancelJobButton({ jobId, status }: { jobId: string; status: string }) {
   const { canReview } = useSession();
   const client = useQueryClient();

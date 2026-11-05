@@ -419,9 +419,14 @@ const STAGES = [
   { key: "closed", label: "마감" },
 ] as const;
 
-/** 대시보드 5단계 중 몇 번째인지(0부터). triaged(재현 안 됨)도 "재현 완료" 단계. 단계 밖이면 -1 */
+/**
+ * 대시보드 5단계 중 몇 번째인지(0부터). 단계 밖이면 -1.
+ * triaged(재현 안 됨)는 "재현 완료", waiting_quota(한도 대기)는 "신규", verified(수정 확인됨)는 "버그 수정 중" 단계로 본다.
+ */
+const STAGE_ALIAS: Record<string, string> = { triaged: "reproduced", waiting_quota: "new", verified: "fixing" };
+
 export function stageIndex(progress: string): number {
-  const key = progress === "triaged" ? "reproduced" : progress;
+  const key = STAGE_ALIAS[progress] ?? progress;
   return STAGES.findIndex((stage) => stage.key === key);
 }
 
@@ -436,8 +441,8 @@ export function ProgressCard({ report, job }: { report: Report; job: Job | undef
         : job?.reason_code
           ? labels.reasonCode(job.reason_code).label
           : "재현에 성공하면",
-    fixing: "담당자가 수정을 시작하면",
-    closed: report.closed_at ? formatDateTime(report.closed_at) : "수정 확인을 통과하면 마감",
+    fixing: report.progress === "verified" ? "수정 확인 통과, 마감을 기다려요" : "담당자가 수정을 시작하면",
+    closed: report.closed_at ? formatDateTime(report.closed_at) : "수정 확인 통과 후 마감",
   };
 
   return (

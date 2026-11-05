@@ -33,6 +33,8 @@ export const progress = lookup(
     reproducing: { label: "재현 중", tone: "progress" },
     reproduced: { label: "재현 완료", tone: "danger" },
     triaged: { label: "재현 완료(재현 안 됨)", tone: "neutral" },
+    verified: { label: "수정 확인됨", tone: "success" },
+    waiting_quota: { label: "한도 대기", tone: "warning" },
     fixing: { label: "버그 수정 중", tone: "warning" },
     dismissed: { label: "버그 아님·중복", tone: "neutral" },
     closed: { label: "마감", tone: "success" },
@@ -123,7 +125,7 @@ export const source = lookup(
 export const role = lookup(
   {
     developer: { label: "개발자", tone: "neutral" },
-    reviewer: { label: "검토자", tone: "neutral" },
+    viewer: { label: "열람자", tone: "neutral" },
     admin: { label: "관리자", tone: "neutral" },
   },
   none,

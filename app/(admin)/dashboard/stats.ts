@@ -15,9 +15,9 @@ export function computeStats(reports: Report[], now = new Date()) {
   const byProgress = new Map<string, number>();
   for (const report of reports) byProgress.set(report.progress, (byProgress.get(report.progress) ?? 0) + 1);
 
-  // 사람이 지금 봐야 하는 신고: 재현됐거나, 재현되지 않아 정보가 필요한 신고
+  // 사람이 지금 봐야 하는 제보: 재현됐거나, 재현되지 않아 정보가 필요하거나, 한도에 걸려 대기 중이거나, 마감을 기다리는 제보
   const attention = reports
-    .filter((report) => report.progress === "reproduced" || report.progress === "triaged")
+    .filter((report) => ["reproduced", "triaged", "waiting_quota", "verified"].includes(report.progress))
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
     .slice(0, ATTENTION_LIMIT);
 

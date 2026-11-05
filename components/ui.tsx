@@ -103,6 +103,8 @@ const progressBadge: Record<string, BadgeStyle> = {
   reproducing: { label: "재현 중", className: "bg-chip text-body" },
   reproduced: { label: "재현됨", className: "bg-primary text-primary-foreground" },
   triaged: { label: "재현 안 됨", className: "bg-warning text-primary-foreground" },
+  verified: { label: "수정 확인됨", className: "bg-primary-soft text-primary-ink" },
+  waiting_quota: { label: "한도 대기", className: "bg-warning-soft text-warning-ink" },
   fixing: { label: "버그 수정 중", className: "border-[1.5px] border-primary text-primary-ink" },
   dismissed: { label: "버그 아님·중복", className: "border-[1.5px] border-chip text-muted" },
   closed: { label: "마감", className: "bg-chip text-subtle" },

@@ -20,7 +20,9 @@ const STATUS_OPTIONS: Option[] = [
   { value: "reproducing", label: "재현 중" },
   { value: "reproduced", label: "재현됨" },
   { value: "triaged", label: "재현 안 됨" },
+  { value: "waiting_quota", label: "한도 대기" },
   { value: "fixing", label: "버그 수정 중" },
+  { value: "verified", label: "수정 확인됨" },
   { value: "dismissed", label: "버그 아님·중복" },
   { value: "closed", label: "마감" },
 ];
@@ -160,8 +162,8 @@ export function ReportsList() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-[13px] text-muted">
               {filters.status === "closed"
-                ? "수정 확인을 통과해 마감된 제보예요."
-                : "수정 확인을 통과해 마감된 제보는 목록에서 빠져요."}
+                ? "마감된 제보예요."
+                : "마감된 제보는 목록에서 빠져요."}
             </p>
             <Pagination page={page} pageCount={pageCount} onChange={(next) => update({ page: String(next) })} />
           </div>

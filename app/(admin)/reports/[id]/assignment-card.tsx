@@ -44,7 +44,7 @@ function Select({ label, children, ...props }: React.SelectHTMLAttributes<HTMLSe
   );
 }
 
-/** 담당자와 처리 상태. 변경은 reviewer, admin만 할 수 있다. */
+/** 담당자와 처리 상태. 변경은 developer, admin만 할 수 있다. 마감은 수정 확인을 통과한 뒤에만 고를 수 있다. */
 export function AssignmentCard({ report }: { report: Report }) {
   const { canReview, membership } = useSession();
   const client = useQueryClient();
@@ -72,8 +72,10 @@ export function AssignmentCard({ report }: { report: Report }) {
     report.progress === "triaged" || report.progress === "new"
       ? "재현 없이 ‘수정 중’으로 넘기면, 마감할 때 돌릴 테스트가 없어요."
       : closed
-        ? "수정 확인을 통과해 마감된 신고예요."
-        : "수정을 시작하면 ‘수정 중’으로 바꾸세요. 수정 확인을 통과하면 자동으로 마감돼요.";
+        ? "마감된 제보예요."
+        : report.fix_verified
+          ? "수정 확인을 통과했어요. 확인했으면 ‘마감’으로 바꾸세요."
+          : "수정을 시작하면 ‘수정 중’으로 바꾸세요. 수정 확인을 통과하면 마감할 수 있어요.";
 
   return (
     <Card title="담당과 상태">
@@ -113,7 +115,7 @@ export function AssignmentCard({ report }: { report: Report }) {
             disabled={workflow.isPending}
             onChange={(event) => workflow.mutate(event.target.value)}
           >
-            {SETTABLE_WORKFLOW_STATUSES.map((status) => (
+            {(report.fix_verified ? [...SETTABLE_WORKFLOW_STATUSES, "closed"] : SETTABLE_WORKFLOW_STATUSES).map((status) => (
               <option key={status} value={status}>
                 {labels.workflowStatus(status).label}
               </option>
