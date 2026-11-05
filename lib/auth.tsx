@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect } from "react";
+import { NoOrgScreen } from "@/components/no-org";
 import { api, isUnauthenticated, type Schemas } from "@/lib/api";
 import type { Role } from "@/types/report";
 
@@ -54,7 +55,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   const membership = user.memberships[0];
   if (!membership) {
-    return <p className="text-sm text-muted">소속된 조직이 없어요. 관리자에게 초대를 요청하세요.</p>;
+    return <NoOrgScreen user={user} />;
   }
 
   const role = membership.role;
