@@ -165,3 +165,27 @@ body {
   letter-spacing: 0;
 }
 
+/*
+ * Tailwind v4는 버튼 커서를 기본(default)으로 둔다.
+ * 누를 수 있는 요소는 모두 손가락 커서로, 막힌 요소는 금지 커서로 맞춘다.
+ */
+@layer base {
+  button,
+  [role="button"],
+  select,
+  summary,
+  label[for],
+  label:has(input[type="checkbox"], input[type="radio"], select),
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="file"],
+  input[type="submit"],
+  input[type="button"] {
+    cursor: pointer;
+  }
+
+  :disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}

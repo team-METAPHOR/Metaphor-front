@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { Avatar, Icon } from "@/components/ui";
+import { Avatar, Icon, Logo } from "@/components/ui";
 import { useLogout, useSession } from "@/lib/auth";
 import * as labels from "@/lib/labels";
-import { useAppliedTheme, useTheme } from "@/lib/theme";
 import { settingsHref, settingsLink } from "./settings-modal/links";
 
 // 페이지를 추가할 때 여기만 고친다.
@@ -31,8 +30,7 @@ export function Sidebar() {
         <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"}`}>
           {!collapsed && (
             <Link href="/dashboard" className="px-3" aria-label="SPEAR 대시보드">
-              {/* eslint-disable-next-line @next/next/no-img-element -- 정적 SVG 로고 */}
-              <img src="/icons/spear-logo.svg" alt="SPEAR" width={101} height={22} />
+              <Logo />
             </Link>
           )}
           <button
@@ -40,7 +38,7 @@ export function Sidebar() {
             onClick={() => setCollapsed((value) => !value)}
             aria-label={collapsed ? "사이드바 펼치기" : "사이드바 접기"}
             aria-expanded={!collapsed}
-            className="rounded-md p-0.5 hover:bg-sidebar-active"
+            className="flex size-9 items-center justify-center rounded-md hover:bg-sidebar-active"
           >
             <Icon name="sidebar-collapse" size={28} className={collapsed ? "rotate-180" : undefined} />
           </button>
@@ -51,7 +49,6 @@ export function Sidebar() {
       </div>
 
       <div className="flex flex-col gap-1">
-        <ThemeToggle collapsed={collapsed} />
         <button
           type="button"
           onClick={() => logout.mutate()}
@@ -135,43 +132,8 @@ function CurrentSettingsButton() {
 
 function SettingsButton({ href }: { href: string }) {
   return (
-    <Link href={href} scroll={false} aria-label="설정" title="설정" className="rounded-md p-1 hover:bg-sidebar-active">
+    <Link href={href} scroll={false} aria-label="설정" title="설정" className="flex size-8 items-center justify-center rounded-md hover:bg-sidebar-active">
       <Icon name="gear" size={24} />
     </Link>
-  );
-}
-
-/** 라이트와 다크를 바로 바꾼다. "시스템"을 고른 상태라면 지금 보이는 테마의 반대로 고정한다. */
-function ThemeToggle({ collapsed }: { collapsed: boolean }) {
-  const { setPreference } = useTheme();
-  const applied = useAppliedTheme();
-  const next = applied === "dark" ? "light" : "dark";
-  const label = next === "light" ? "라이트 모드" : "다크 모드";
-
-  return (
-    <button
-      type="button"
-      onClick={() => setPreference(next)}
-      title={collapsed ? label : undefined}
-      aria-label={collapsed ? label : undefined}
-      className={`${rowClass} hover:bg-sidebar-active ${collapsed ? "justify-center" : ""}`}
-    >
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
-        {next === "light" ? (
-          <g stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" />
-          </g>
-        ) : (
-          <path
-            d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinejoin="round"
-          />
-        )}
-      </svg>
-      {!collapsed && label}
-    </button>
   );
 }
