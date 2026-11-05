@@ -2,7 +2,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
 import { button } from "@/components/ui";
 import { api, type Schemas } from "@/lib/api";
 import { useSession } from "@/lib/auth";
@@ -19,20 +18,29 @@ type WidgetSettings = Schemas["WidgetSettingsResponse"];
 
 export type SiteTab = "sdk" | "repro" | "site";
 
-const NO_SITE_HINT: Record<SiteTab, string> = {
-  sdk: "설치 코드와 위젯 설정이 여기에 나와요.",
-  repro: "재현 환경을 설정할 수 있어요.",
-  site: "사이트 정보와 도메인 소유 확인이 여기에 나와요.",
-};
+/** 사이트 추가: 새 사이트를 등록한다. 등록하면 SDK와 설치 탭으로 넘어간다. */
+export function NewSiteTab({ noSite, onCreated }: { noSite: boolean; onCreated: (programId: string) => void }) {
+  const { isAdmin } = useSession();
+  if (!isAdmin) return <p className="text-sm text-muted">사이트는 관리자만 추가할 수 있어요. 관리자에게 요청하세요.</p>;
+  return (
+    <>
+      {noSite && (
+        <p className="rounded-[10px] bg-surface-inset px-4 py-3 text-[13px] leading-5 text-subtle">
+          아직 등록된 사이트가 없어요. 사이트를 추가하면 SDK와 설치, 재현 환경, 사이트 정보를 설정할 수 있어요.
+        </p>
+      )}
+      <CreateProgramCard onCreated={(program) => onCreated(program.id)} />
+    </>
+  );
+}
 
 /** 사이트 탭(SDK와 설치, 재현 환경, 사이트 정보) 공통: 위쪽 사이트 선택 바와 선택된 사이트의 내용. */
-export function SiteTabs({ tab }: { tab: SiteTab }) {
+export function SiteTabs({ tab, onAdd }: { tab: SiteTab; onAdd: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { isAdmin } = useSession();
   const programs = useQuery({ queryKey: ["programs"], queryFn: () => api<ProgramList>("/programs") });
-  const [creating, setCreating] = useState(false);
 
   function select(id: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -44,25 +52,8 @@ export function SiteTabs({ tab }: { tab: SiteTab }) {
   if (programs.isError) return <ErrorText error={programs.error} what="사이트 목록" />;
 
   const items = programs.data.items;
-  if (items.length === 0 || creating) {
-    if (!isAdmin) return <p className="text-sm text-muted">등록된 사이트가 없어요. 관리자에게 사이트 등록을 요청하세요.</p>;
-    return (
-      <>
-        {items.length === 0 && (
-          <p className="rounded-[10px] bg-surface-inset px-4 py-3 text-[13px] leading-5 text-subtle">
-            아직 등록된 사이트가 없어요. 사이트를 먼저 등록하면 {NO_SITE_HINT[tab]}
-          </p>
-        )}
-        <CreateProgramCard
-          onCreated={(program) => {
-            setCreating(false);
-            select(program.id);
-          }}
-          onCancel={items.length > 0 ? () => setCreating(false) : undefined}
-        />
-      </>
-    );
-  }
+  // 사이트가 없으면 모달이 이 탭을 잠그고 사이트 추가로 보낸다.
+  if (items.length === 0) return null;
 
   const selected = items.find((item) => item.id === searchParams.get("program")) ?? items[0];
 
@@ -84,7 +75,7 @@ export function SiteTabs({ tab }: { tab: SiteTab }) {
           </select>
         </label>
         {isAdmin && (
-          <button type="button" className={button.ghost} onClick={() => setCreating(true)}>
+          <button type="button" className={button.ghost} onClick={onAdd}>
             + 사이트 추가
           </button>
         )}
