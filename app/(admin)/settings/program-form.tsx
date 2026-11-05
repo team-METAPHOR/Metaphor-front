@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@/components/ui";
 import { ApiError, type Schemas } from "@/lib/api";
 import { errorMessage } from "./ui";
 
@@ -308,7 +309,7 @@ export function ProgramFields({
         {list("excluded_path_prefixes", "/admin")}
       </Row>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Row field="status" label="상태" errors={errors}>
+        <Row field="status" label="상태" help="운영 중일 때만 신고를 받고 재현해요." errors={errors}>
           <select
             id="program-status"
             value={draft.status}
@@ -344,8 +345,11 @@ export function ProgramFields({
         </p>
       )}
 
-      <details className="rounded-lg border border-border px-4 py-3" open={hasAdvancedError(errors)}>
-        <summary className="cursor-pointer text-sm font-medium">고급 설정</summary>
+      <details className="group rounded-lg border border-border px-4 py-3" open={hasAdvancedError(errors)}>
+        <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-medium [&::-webkit-details-marker]:hidden">
+          <Icon name="chevron-right-sm" size={14}className="transition-transform group-open:rotate-90" />
+          고급 설정
+        </summary>
         <div className="mt-4 space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <Row field="width" label="화면 너비" help="320~1920" errors={errors}>
