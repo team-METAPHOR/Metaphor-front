@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+// 페이지를 추가할 때 여기만 고친다.
 const items = [
   { href: "/dashboard", label: "대시보드" },
   { href: "/reports", label: "신고 목록" },
+  { href: "/settings", label: "사이트 설정" },
 ] as const;
 
 export function SidebarNav() {
