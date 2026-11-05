@@ -20,6 +20,7 @@ import {
   TimelineCard,
   stageIndex,
 } from "./run-cards";
+import { STOPPED_JOB_STATUSES, StopCard, useReached } from "./stop-card";
 import { ErrorText, Muted } from "./ui";
 
 type Report = Schemas["ReportDetail"];
@@ -56,11 +57,12 @@ function WithBaseline({ report, baselineId, retest }: { report: Report; baseline
   return <Body report={report} repro={baseline.data} retest={retest} />;
 }
 
-type Variant = "reproduced" | "not-reproduced" | "pending";
+type Variant = "reproduced" | "not-reproduced" | "stopped" | "pending";
 
 function variantOf(job: Job | null): Variant {
   if (!job || isActiveJob(job.status)) return "pending";
   if (job.verdict === "reproduced") return "reproduced";
+  if (STOPPED_JOB_STATUSES.includes(job.status)) return "stopped";
   if (job.status === "needs_info") return "not-reproduced";
   if (job.status === "completed" && job.verdict != null && NOT_REPRODUCED_VERDICTS.includes(job.verdict)) {
     return "not-reproduced";
@@ -76,7 +78,9 @@ function Body({ report, repro, retest }: { report: Report; repro: Job | null; re
   return (
     <div className="flex flex-col gap-8">
       <Header report={report} current={current} variant={variant} />
-      {repro && variant !== "pending" ? (
+      {repro && variant === "stopped" ? (
+        <StoppedLayout report={report} job={repro} />
+      ) : repro && (variant === "reproduced" || variant === "not-reproduced") ? (
         <JobLayout report={report} repro={repro} retest={retest} variant={variant} />
       ) : (
         <PendingLayout report={report} job={repro} />
@@ -88,6 +92,8 @@ function Body({ report, repro, retest }: { report: Report; repro: Job | null; re
 function Header({ report, current, variant }: { report: Report; current: Job | null; variant: Variant }) {
   const stage = stageIndex(report.progress);
   const active = current != null && isActiveJob(current.status);
+  // AI 사용량 제한으로 멈췄으면 서버가 정한 시각까지 다시 실행을 받지 않는다(429).
+  const retryReady = useReached(current?.retry_available_at);
   return (
     <header className="flex flex-col gap-4">
       <nav aria-label="위치" className="flex items-center gap-1.5 text-[13px] text-muted">
@@ -112,8 +118,8 @@ function Header({ report, current, variant }: { report: Report; current: Job | n
             <RevalidateButton
               reportId={report.id}
               label={variant === "pending" && !current ? "재현 시작" : "처음부터 다시 재현"}
-              primary={variant === "not-reproduced" || !current}
-              disabled={active}
+              primary={variant === "not-reproduced" || variant === "stopped" || !current}
+              disabled={active || !retryReady}
             />
           )}
         </div>
@@ -140,7 +146,7 @@ function JobLayout({
   report: Report;
   repro: Job;
   retest: Job | null;
-  variant: Exclude<Variant, "pending">;
+  variant: Exclude<Variant, "pending" | "stopped">;
 }) {
   const result = useJobResult(repro.id);
   const steps = result.data?.report?.scenario?.steps ?? [];
@@ -189,6 +195,21 @@ function JobLayout({
           <ClosestPlanCard reportId={report.id} attempts={attempts} />
         </>
       }
+      side={
+        <>
+          <EvidenceCard report={report} compact />
+          <LogEstimateCard report={report} />
+          <AssignmentCard report={report} />
+        </>
+      }
+    />
+  );
+}
+
+function StoppedLayout({ report, job }: { report: Report; job: Job }) {
+  return (
+    <Columns
+      main={<StopCard report={report} job={job} />}
       side={
         <>
           <EvidenceCard report={report} compact />

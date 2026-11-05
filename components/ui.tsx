@@ -75,13 +75,19 @@ export function Card({
   title: React.ReactNode;
   description?: React.ReactNode;
   aside?: React.ReactNode;
-  /** 강조 테두리. success: 수정 확인, warning: 재현에 필요한 것 */
-  tone?: "success" | "warning";
+  /** 강조 테두리. success: 수정 확인, warning: 재현에 필요한 것, danger: 실행 실패 */
+  tone?: "success" | "warning" | "danger";
   className?: string;
   children?: React.ReactNode;
 }) {
   const border =
-    tone === "success" ? "border border-primary/45" : tone === "warning" ? "border border-warning/55" : "border border-edge";
+    tone === "success"
+      ? "border border-primary/45"
+      : tone === "warning"
+        ? "border border-warning/55"
+        : tone === "danger"
+          ? "border border-danger/55"
+          : "border border-edge";
   return (
     <section className={`flex min-w-0 flex-col gap-4 rounded-xl bg-surface px-6 pt-[22px] pb-6 ${border} ${className ?? ""}`}>
       <div className="flex items-center justify-between gap-4">
