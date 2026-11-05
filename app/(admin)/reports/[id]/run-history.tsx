@@ -56,7 +56,7 @@ function formatWhen(value: string): string {
 }
 
 /** "3분 05초", 1분 안이면 "42초" */
-function formatDuration(seconds: number | null): string | null {
+export function formatDuration(seconds: number | null): string | null {
   if (seconds == null) return null;
   const total = Math.round(seconds);
   const minutes = Math.floor(total / 60);
