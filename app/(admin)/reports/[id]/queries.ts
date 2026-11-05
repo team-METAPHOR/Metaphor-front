@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
-import { ApiError, api, type Schemas } from "@/lib/api";
+import { ApiError, api, apiText, type Schemas } from "@/lib/api";
 import { ACTIVE_JOB_STATUSES, type EngineResult } from "@/types/report";
 
 type Report = Schemas["ReportDetail"];
@@ -137,6 +137,21 @@ export function useArtifacts(jobId: string) {
   });
 }
 
+function evidencePath(artifactId: string): string {
+  return `/evidence/${encodeURIComponent(artifactId)}/download`;
+}
+
 export function evidenceUrl(artifactId: string): string {
-  return `/api/v1/evidence/${encodeURIComponent(artifactId)}/download`;
+  return `/api/v1${evidencePath(artifactId)}`;
+}
+
+/** 텍스트 근거 파일 내용. 파일은 바뀌지 않으니 한 번만 받는다. */
+export function useEvidenceText(artifactId: string | null) {
+  return useQuery({
+    queryKey: ["evidence", artifactId, "text"],
+    queryFn: ({ signal }) => apiText(evidencePath(artifactId!), signal),
+    enabled: artifactId != null,
+    staleTime: Infinity,
+    retry: retryUnlessDenied,
+  });
 }

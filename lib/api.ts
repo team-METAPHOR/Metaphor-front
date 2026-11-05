@@ -50,6 +50,13 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
   return (await response.json()) as T;
 }
 
+/** 텍스트 파일(근거 파일 등)을 그대로 받는다. 에러는 api와 같게 다룬다. */
+export async function apiText(path: string, signal?: AbortSignal): Promise<string> {
+  const response = await fetch(`/api/v1${path}`, { credentials: "same-origin", signal });
+  if (!response.ok) throw await toApiError(response);
+  return response.text();
+}
+
 async function toApiError(response: Response): Promise<ApiError> {
   const requestId = response.headers.get("X-Request-Id");
   try {

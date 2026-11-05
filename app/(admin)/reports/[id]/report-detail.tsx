@@ -8,6 +8,7 @@ import { AssignmentCard } from "./assignment-card";
 import { DiagnosisCard } from "./diagnosis-card";
 import { EvidenceCard, LogEstimateCard } from "./evidence";
 import { CancelJobButton, RevalidateButton } from "./job-actions";
+import { TestExportCard, VideoCard } from "./media-cards";
 import { NeedsCard } from "./needs-card";
 import { isActiveJob, useJob, useJobResult, useReport } from "./queries";
 import { RetestCard } from "./retest-card";
@@ -195,6 +196,8 @@ function JobLayout({
             {resultError}
             <AttemptsCard attempts={attempts} stepCount={steps.length} reproduced />
             {steps.length > 0 && <StepsCard report={report} jobId={repro.id} steps={steps} />}
+            <TestExportCard jobId={repro.id} />
+            <VideoCard jobId={repro.id} />
             <ScreenshotsCard jobId={repro.id} />
             <SolutionsCard reportId={report.id} />
             <RetestCard reportId={report.id} programId={report.program_id} baseline={repro} retest={retest} />
@@ -220,6 +223,7 @@ function JobLayout({
           <DiagnosisCard reportId={report.id} jobId={repro.id} />
           {resultError}
           <AttemptsCard attempts={attempts} stepCount={steps.length} reproduced={false} />
+          <VideoCard jobId={repro.id} />
           <ClosestPlanCard reportId={report.id} attempts={attempts} />
         </>
       }

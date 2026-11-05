@@ -228,8 +228,8 @@ export function CopyButton({ text, label, className }: { text: string; label: st
 }
 
 /**
- * AI가 만든 재현 절차. Playwright 테스트 파일은 서버가 아직 저장하지 않는다(Metaphor-back#62).
- * 대신 엔진 보고서·결과 파일을 내려받을 수 있게 한다.
+ * AI가 만든 재현 절차. 엔진 보고서·결과 파일도 내려받을 수 있게 한다.
+ * Playwright 테스트 파일은 TestExportCard가 따로 보여 준다.
  */
 export function StepsCard({ report, jobId, steps }: { report: Report; jobId: string; steps: Step[] }) {
   const artifacts = useArtifacts(jobId);
@@ -272,7 +272,7 @@ export function StepsCard({ report, jobId, steps }: { report: Report; jobId: str
 
 // ---------------------------------------------------------------- 재현 스크린샷
 
-/** 재현 영상과 trace는 서버가 아직 저장하지 않아(Metaphor-back#62) 스크린샷을 보여준다. */
+/** 재현 중 찍은 스크린샷. 영상은 VideoCard가 따로 보여 준다. trace는 엔진이 만들지 않는다. */
 export function ScreenshotsCard({ jobId }: { jobId: string }) {
   const artifacts = useArtifacts(jobId);
   const shots = (artifacts.data?.items ?? []).filter((item) => item.kind === "screenshot");
