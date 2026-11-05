@@ -11,6 +11,7 @@
           "health"
         ],
         "summary": "Health Check",
+        "description": "Report API process liveness without checking external dependencies.",
         "operationId": "health_check_api_v1_health_get",
         "responses": {
           "200": {
@@ -825,6 +826,152 @@
         }
       }
     },
+    "/api/v1/orgs/{org_id}/report-summary": {
+      "get": {
+        "tags": [
+          "orgs"
+        ],
+        "summary": "Report Summary",
+        "description": "Dashboard cards: report counts by progress and the newest reports needing attention.",
+        "operationId": "report_summary_api_v1_orgs__org_id__report_summary_get",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Org Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orgs/{org_id}/report-stats": {
+      "get": {
+        "tags": [
+          "orgs"
+        ],
+        "summary": "Report Stats",
+        "description": "Reproduction metrics over `from`..`to` (to exclusive, default now; at most 90 days), or\nthe last `days` days (clamped to 1..90) when `from` is absent. Optional `program_id`.",
+        "operationId": "report_stats_api_v1_orgs__org_id__report_stats_get",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Org Id"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 7,
+              "title": "Days"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "name": "program_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Program Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportStats"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/programs": {
       "get": {
         "tags": [
@@ -1061,6 +1208,201 @@
         }
       }
     },
+    "/api/v1/programs/{program_id}/test-conditions": {
+      "get": {
+        "tags": [
+          "test-conditions"
+        ],
+        "summary": "List Conditions",
+        "operationId": "list_conditions_api_v1_programs__program_id__test_conditions_get",
+        "parameters": [
+          {
+            "name": "program_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Program Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestConditionList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "test-conditions"
+        ],
+        "summary": "Create Condition",
+        "operationId": "create_condition_api_v1_programs__program_id__test_conditions_post",
+        "parameters": [
+          {
+            "name": "program_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Program Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestConditionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestConditionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/programs/{program_id}/test-conditions/{condition_id}": {
+      "patch": {
+        "tags": [
+          "test-conditions"
+        ],
+        "summary": "Update Condition",
+        "operationId": "update_condition_api_v1_programs__program_id__test_conditions__condition_id__patch",
+        "parameters": [
+          {
+            "name": "program_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Program Id"
+            }
+          },
+          {
+            "name": "condition_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Condition Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestConditionPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestConditionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "test-conditions"
+        ],
+        "summary": "Delete Condition",
+        "operationId": "delete_condition_api_v1_programs__program_id__test_conditions__condition_id__delete",
+        "parameters": [
+          {
+            "name": "program_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Program Id"
+            }
+          },
+          {
+            "name": "condition_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Condition Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/programs/{program_id}/widget-settings": {
       "get": {
         "tags": [
@@ -1195,6 +1537,131 @@
         }
       }
     },
+    "/api/v1/programs/{program_id}/test-account": {
+      "get": {
+        "tags": [
+          "test-account"
+        ],
+        "summary": "Get Test Account",
+        "operationId": "get_test_account_api_v1_programs__program_id__test_account_get",
+        "parameters": [
+          {
+            "name": "program_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Program Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestAccountResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "test-account"
+        ],
+        "summary": "Put Test Account",
+        "operationId": "put_test_account_api_v1_programs__program_id__test_account_put",
+        "parameters": [
+          {
+            "name": "program_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Program Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestAccountPut"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestAccountResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "test-account"
+        ],
+        "summary": "Delete Test Account",
+        "operationId": "delete_test_account_api_v1_programs__program_id__test_account_delete",
+        "parameters": [
+          {
+            "name": "program_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Program Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/reports": {
       "post": {
         "tags": [
@@ -1258,6 +1725,7 @@
           "reports"
         ],
         "summary": "List Reports",
+        "description": "Closed reports are hidden unless `include_closed=true` or `progress=closed`.\n`from` is inclusive, `to` exclusive (created_at). Without `cursor` the response is\npage-numbered (`page`, `total`). `sort`: `created_desc` (default) or `created_asc`; a\ncursor must be reused with the same `sort`.",
         "operationId": "list_reports_api_v1_reports_get",
         "parameters": [
           {
@@ -1342,6 +1810,128 @@
               "title": "Assignee"
             },
             "description": "\"me\" or a user id"
+          },
+          {
+            "name": "progress",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "new",
+                      "reproducing",
+                      "reproduced",
+                      "triaged",
+                      "verified",
+                      "waiting_quota",
+                      "fixing",
+                      "dismissed",
+                      "closed"
+                    ],
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Progress"
+            }
+          },
+          {
+            "name": "include_closed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Closed"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Page"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "created_desc",
+                "created_asc"
+              ],
+              "type": "string",
+              "default": "created_desc",
+              "title": "Sort"
+            }
           }
         ],
         "responses": {
@@ -1393,6 +1983,77 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ReportDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/{report_id}/duplicates": {
+      "get": {
+        "tags": [
+          "reports"
+        ],
+        "summary": "List Duplicates",
+        "description": "Widget submissions merged into this report, newest first (cursor-paged).",
+        "operationId": "list_duplicates_api_v1_reports__report_id__duplicates_get",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Report Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportDuplicateList"
                 }
               }
             }
@@ -1583,6 +2244,75 @@
       }
     },
     "/api/v1/reports/{report_id}/validation-jobs": {
+      "get": {
+        "tags": [
+          "reports"
+        ],
+        "summary": "List Report Jobs",
+        "description": "All runs of the report, newest first (cursor-paged).",
+        "operationId": "list_report_jobs_api_v1_reports__report_id__validation_jobs_get",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Report Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "reports"
@@ -1717,6 +2447,49 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/JobResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/validation-jobs/{job_id}/conditions": {
+      "get": {
+        "tags": [
+          "validation-jobs"
+        ],
+        "summary": "List Conditions",
+        "description": "Per-condition results of a condition-matrix job (409 NOT_CONDITION_JOB otherwise).\n`most_progressed_condition_ids` counts completed steps; it is not symptom similarity.",
+        "operationId": "list_conditions_api_v1_validation_jobs__job_id__conditions_get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConditionResultList"
                 }
               }
             }
@@ -1941,6 +2714,22 @@
               "type": "string",
               "title": "Artifact Id"
             }
+          },
+          {
+            "name": "Range",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Range"
+            }
           }
         ],
         "responses": {
@@ -1963,6 +2752,56 @@
   },
   "components": {
     "schemas": {
+      "AiHypotheses": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "const": "ai",
+            "title": "Source",
+            "default": "ai"
+          },
+          "root_cause_confirmed": {
+            "type": "boolean",
+            "const": false,
+            "title": "Root Cause Confirmed",
+            "default": false
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Hypothesis"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "AiHypotheses"
+      },
+      "AiQuestions": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "const": "ai",
+            "title": "Source",
+            "default": "ai"
+          },
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "AiQuestions"
+      },
       "AllowedOrigin": {
         "properties": {
           "origin": {
@@ -2022,11 +2861,15 @@
             },
             "type": "array",
             "title": "Items"
+          },
+          "media": {
+            "$ref": "#/components/schemas/JobMedia"
           }
         },
         "type": "object",
         "required": [
-          "items"
+          "items",
+          "media"
         ],
         "title": "ArtifactList"
       },
@@ -2070,7 +2913,8 @@
           "email",
           "active"
         ],
-        "title": "Assignee"
+        "title": "Assignee",
+        "description": "`active: false` = no longer an active member of the report's org; the assignment is kept\nbut display_name/email are withheld (null) so a former member's contact is not exposed."
       },
       "AssigneeUpdate": {
         "properties": {
@@ -2091,7 +2935,106 @@
         "required": [
           "user_id"
         ],
-        "title": "AssigneeUpdate"
+        "title": "AssigneeUpdate",
+        "description": "`user_id: null` unassigns. The user must be an active member of the report's org."
+      },
+      "AttemptVideo": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "start_offset_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Offset Seconds"
+          },
+          "duration_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Seconds"
+          },
+          "capture_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capture Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "start_offset_seconds",
+          "duration_seconds",
+          "capture_error"
+        ],
+        "title": "AttemptVideo"
+      },
+      "AttentionItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "progress": {
+            "type": "string",
+            "enum": [
+              "new",
+              "reproducing",
+              "reproduced",
+              "triaged",
+              "verified",
+              "waiting_quota",
+              "fixing",
+              "dismissed",
+              "closed"
+            ],
+            "title": "Progress"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RequiredAction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "number",
+          "title",
+          "progress"
+        ],
+        "title": "AttentionItem"
       },
       "AutoDetect": {
         "properties": {
@@ -2120,6 +3063,68 @@
           "http_5xx"
         ],
         "title": "AutoDetect"
+      },
+      "BestAttempt": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "title": "Job Id"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "hypothesis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hypothesis"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "verdict",
+          "reason_code",
+          "summary",
+          "hypothesis"
+        ],
+        "title": "BestAttempt",
+        "description": "Latest finished job's stored engine result, as redacted plain text (never HTML)."
       },
       "Body_create_report_api_v1_reports_post": {
         "properties": {
@@ -2230,6 +3235,205 @@
         ],
         "title": "ClarificationCreate"
       },
+      "ConditionInfo": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "browser_name": {
+            "type": "string",
+            "title": "Browser Name"
+          },
+          "width": {
+            "type": "integer",
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "title": "Height"
+          },
+          "response_delay_ms": {
+            "type": "integer",
+            "title": "Response Delay Ms"
+          },
+          "test_context_id": {
+            "type": "string",
+            "title": "Test Context Id"
+          },
+          "record_video": {
+            "type": "boolean",
+            "title": "Record Video"
+          },
+          "has_session": {
+            "type": "boolean",
+            "title": "Has Session"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "browser_name",
+          "width",
+          "height",
+          "response_delay_ms",
+          "test_context_id",
+          "record_video",
+          "has_session"
+        ],
+        "title": "ConditionInfo",
+        "description": "The registered condition as frozen in the job snapshot (no session reference)."
+      },
+      "ConditionResultItem": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "condition_id": {
+            "type": "string",
+            "title": "Condition Id"
+          },
+          "condition": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConditionInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "reproduced",
+              "not_reproduced",
+              "blocked",
+              "inconclusive",
+              "not_run",
+              "running"
+            ],
+            "title": "Outcome"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "stop_point": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stop Point"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "index",
+          "condition_id",
+          "condition",
+          "outcome",
+          "status",
+          "verdict",
+          "error_code",
+          "stop_point",
+          "duration_ms"
+        ],
+        "title": "ConditionResultItem"
+      },
+      "ConditionResultList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ConditionResultItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "attempted": {
+            "type": "integer",
+            "title": "Attempted"
+          },
+          "reproduced": {
+            "type": "integer",
+            "title": "Reproduced"
+          },
+          "matched_condition_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Matched Condition Ids"
+          },
+          "most_progressed_condition_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Most Progressed Condition Ids"
+          },
+          "progress_basis": {
+            "type": "string",
+            "title": "Progress Basis"
+          },
+          "not_selected_condition_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Not Selected Condition Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "attempted",
+          "reproduced",
+          "matched_condition_ids",
+          "most_progressed_condition_ids",
+          "progress_basis",
+          "not_selected_condition_ids"
+        ],
+        "title": "ConditionResultList"
+      },
       "DeveloperHandoff": {
         "properties": {
           "state": {
@@ -2331,9 +3535,30 @@
           },
           "ai_generated": {
             "type": "boolean",
-            "const": true,
-            "title": "Ai Generated",
-            "default": true
+            "title": "Ai Generated"
+          },
+          "diagnosis_state": {
+            "type": "string",
+            "enum": [
+              "not_run",
+              "pending",
+              "cancelled",
+              "available",
+              "derived",
+              "unavailable",
+              "expired"
+            ],
+            "title": "Diagnosis State"
+          },
+          "diagnosis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Diagnosis"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -2347,10 +3572,294 @@
           "missing_information",
           "severity",
           "confidence",
-          "classification"
+          "classification",
+          "ai_generated",
+          "diagnosis_state",
+          "diagnosis"
         ],
         "title": "DeveloperHandoff",
-        "description": "Model-generated text, returned as plain data only (never HTML, links not followed)."
+        "description": "Plain data only (never HTML, links not followed). `state` and the analysis fields\n(summary … classification) are the AI analysis (`ai_generated`); `diagnosis` is the\nexecution diagnosis with per-section provenance."
+      },
+      "Diagnosis": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "const": "execution",
+            "title": "Source",
+            "default": "execution"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "reproduced",
+              "not_observed",
+              "needs_information",
+              "execution_failed",
+              "cancelled",
+              "inconclusive"
+            ],
+            "title": "Outcome"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "interpretation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interpretation"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reason Codes"
+          },
+          "root_cause_confirmed": {
+            "type": "boolean",
+            "const": false,
+            "title": "Root Cause Confirmed",
+            "default": false
+          },
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/DiagnosisAttempt"
+            },
+            "type": "array",
+            "title": "Attempts"
+          },
+          "observed_facts": {
+            "items": {
+              "$ref": "#/components/schemas/ObservedFact"
+            },
+            "type": "array",
+            "title": "Observed Facts"
+          },
+          "next_actions": {
+            "items": {
+              "$ref": "#/components/schemas/NextAction"
+            },
+            "type": "array",
+            "title": "Next Actions"
+          },
+          "missing_information": {
+            "$ref": "#/components/schemas/AiQuestions"
+          },
+          "hypotheses": {
+            "$ref": "#/components/schemas/AiHypotheses"
+          },
+          "timings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "outcome",
+          "category",
+          "summary",
+          "interpretation",
+          "reason_codes",
+          "attempts",
+          "observed_facts",
+          "next_actions",
+          "missing_information",
+          "hypotheses",
+          "timings"
+        ],
+        "title": "Diagnosis",
+        "description": "Deterministic run diagnosis (`source: execution`). Only `hypotheses` and\n`missing_information` are model output, and they say so with their own `source`."
+      },
+      "DiagnosisAttempt": {
+        "properties": {
+          "attempt": {
+            "type": "integer",
+            "title": "Attempt"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "completed_steps": {
+            "type": "integer",
+            "title": "Completed Steps"
+          },
+          "total_steps": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Steps"
+          },
+          "failed_step_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failed Step Index"
+          },
+          "next_step": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NextStep"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "blocker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocker"
+          },
+          "ready": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ready"
+          },
+          "expected_observed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Observed"
+          },
+          "symptom_observed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symptom Observed"
+          },
+          "elapsed_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elapsed Seconds"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence Ids"
+          },
+          "observation_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Observation Ids"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineEntry"
+            },
+            "type": "array",
+            "title": "Timeline"
+          },
+          "video": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AttemptVideo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "attempt",
+          "stage",
+          "completed_steps",
+          "total_steps",
+          "failed_step_index",
+          "next_step",
+          "blocker",
+          "ready",
+          "expected_observed",
+          "symptom_observed",
+          "elapsed_seconds",
+          "evidence_ids",
+          "observation_ids",
+          "timeline",
+          "video"
+        ],
+        "title": "DiagnosisAttempt"
       },
       "EventList": {
         "properties": {
@@ -2397,6 +3906,63 @@
           "detail"
         ],
         "title": "EventOut"
+      },
+      "ExportedTestMedia": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "plan_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Sha256"
+          },
+          "artifact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Id"
+          },
+          "required_environment": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Required Environment"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "plan_sha256",
+          "artifact_id",
+          "required_environment",
+          "error_code"
+        ],
+        "title": "ExportedTestMedia"
       },
       "HTTPValidationError": {
         "properties": {
@@ -2450,9 +4016,9 @@
         "properties": {
           "token": {
             "type": "string",
-            "title": "Token",
             "maxLength": 200,
-            "minLength": 1
+            "minLength": 1,
+            "title": "Token"
           }
         },
         "type": "object",
@@ -2489,9 +4055,9 @@
           "role": {
             "type": "string",
             "enum": [
+              "admin",
               "developer",
-              "reviewer",
-              "admin"
+              "viewer"
             ],
             "title": "Role"
           },
@@ -2620,6 +4186,80 @@
           "status"
         ],
         "title": "JobCancelled"
+      },
+      "JobList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/JobOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "JobList"
+      },
+      "JobMedia": {
+        "properties": {
+          "video_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Enabled"
+          },
+          "videos": {
+            "items": {
+              "$ref": "#/components/schemas/VideoMedia"
+            },
+            "type": "array",
+            "title": "Videos"
+          },
+          "test_export": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExportedTestMedia"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trace_available": {
+            "type": "boolean",
+            "const": false,
+            "title": "Trace Available",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "video_enabled",
+          "videos",
+          "test_export"
+        ],
+        "title": "JobMedia",
+        "description": "`video_enabled` is null while the job runs or once its result is gone (retention)."
       },
       "JobOut": {
         "properties": {
@@ -2753,6 +4393,33 @@
             ],
             "title": "Baseline Job Id"
           },
+          "has_conditions": {
+            "type": "boolean",
+            "title": "Has Conditions"
+          },
+          "retry_after_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry After Seconds"
+          },
+          "retry_available_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry Available At"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -2801,6 +4468,7 @@
           "human_review_required",
           "parent_job_id",
           "baseline_job_id",
+          "has_conditions",
           "created_at",
           "started_at",
           "finished_at"
@@ -2857,6 +4525,41 @@
               }
             ],
             "title": "App Version"
+          },
+          "condition_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                },
+                "type": "array",
+                "maxItems": 16,
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition Ids"
+          },
+          "auto_select_conditions": {
+            "type": "boolean",
+            "title": "Auto Select Conditions",
+            "default": false
+          },
+          "max_conditions": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 8,
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Conditions"
           }
         },
         "additionalProperties": false,
@@ -2995,9 +4698,9 @@
           "role": {
             "type": "string",
             "enum": [
+              "admin",
               "developer",
-              "reviewer",
-              "admin"
+              "viewer"
             ],
             "title": "Role"
           }
@@ -3031,13 +4734,137 @@
         ],
         "title": "MembershipResponse"
       },
+      "NextAction": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "owner": {
+            "type": "string",
+            "title": "Owner"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "required_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Required Fields"
+          },
+          "retry_after_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry After Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "owner",
+          "message",
+          "required_fields"
+        ],
+        "title": "NextAction"
+      },
+      "NextStep": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action",
+          "target"
+        ],
+        "title": "NextStep",
+        "description": "The plan step an attempt stopped before. Typed values are never returned."
+      },
+      "ObservedFact": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "network_observation",
+            "title": "Kind"
+          },
+          "method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Method"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "blocker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocker"
+          },
+          "observation_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Observation Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "method",
+          "url",
+          "status",
+          "blocker",
+          "observation_ids"
+        ],
+        "title": "ObservedFact"
+      },
       "OrgCreate": {
         "properties": {
           "name": {
             "type": "string",
-            "title": "Name",
             "maxLength": 200,
-            "minLength": 1
+            "minLength": 1,
+            "title": "Name"
           }
         },
         "type": "object",
@@ -3084,9 +4911,9 @@
         "properties": {
           "name": {
             "type": "string",
-            "title": "Name",
             "maxLength": 200,
-            "minLength": 1
+            "minLength": 1,
+            "title": "Name"
           }
         },
         "type": "object",
@@ -3173,18 +5000,36 @@
         ],
         "title": "OriginVerificationResponse"
       },
+      "PageCount": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "path",
+          "count"
+        ],
+        "title": "PageCount"
+      },
       "PasswordChangeRequest": {
         "properties": {
           "current_password": {
             "type": "string",
-            "title": "Current Password",
-            "maxLength": 256
+            "maxLength": 256,
+            "title": "Current Password"
           },
           "new_password": {
             "type": "string",
-            "title": "New Password",
             "maxLength": 256,
-            "minLength": 10
+            "minLength": 10,
+            "title": "New Password"
           }
         },
         "type": "object",
@@ -3643,7 +5488,14 @@
             "title": "Program Id"
           },
           "validation_job_id": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Validation Job Id"
           },
           "status": {
@@ -3711,11 +5563,17 @@
               "reproducing",
               "reproduced",
               "triaged",
+              "verified",
+              "waiting_quota",
               "fixing",
               "dismissed",
               "closed"
             ],
             "title": "Progress"
+          },
+          "fix_verified": {
+            "type": "boolean",
+            "title": "Fix Verified"
           },
           "closed_at": {
             "anyOf": [
@@ -3753,6 +5611,17 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
+          },
+          "latest_duplicate_excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Duplicate Excerpt"
           },
           "target_url": {
             "type": "string",
@@ -3801,6 +5670,24 @@
             "type": "boolean",
             "title": "Scrubbed",
             "default": false
+          },
+          "required_actions": {
+            "items": {
+              "$ref": "#/components/schemas/RequiredAction"
+            },
+            "type": "array",
+            "title": "Required Actions",
+            "default": []
+          },
+          "best_attempt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BestAttempt"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -3815,6 +5702,7 @@
           "duplicate_count",
           "workflow_status",
           "progress",
+          "fix_verified",
           "closed_at",
           "assignee",
           "latest_job",
@@ -3827,6 +5715,90 @@
           "input_artifact_id"
         ],
         "title": "ReportDetail"
+      },
+      "ReportDuplicateItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Received At"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "has_screenshot": {
+            "type": "boolean",
+            "title": "Has Screenshot"
+          },
+          "input_artifact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Artifact Id"
+          },
+          "client_context": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "received_at",
+          "description",
+          "has_screenshot",
+          "input_artifact_id",
+          "client_context"
+        ],
+        "title": "ReportDuplicateItem",
+        "description": "A widget submission merged into this report (same error fingerprint within 24 h).\n`description` is redacted plain text; `client_context` is the same whitelisted SDK\nmetadata the report itself keeps. The screenshot (masked) downloads through\n`GET /evidence/{input_artifact_id}/download`."
+      },
+      "ReportDuplicateList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReportDuplicateItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "ReportDuplicateList",
+        "description": "Newest first. Only the first stored duplicates are kept (see `duplicate_count` for\nthe total); the list is empty once the report's retention scrub ran."
       },
       "ReportItem": {
         "properties": {
@@ -3873,11 +5845,17 @@
               "reproducing",
               "reproduced",
               "triaged",
+              "verified",
+              "waiting_quota",
               "fixing",
               "dismissed",
               "closed"
             ],
             "title": "Progress"
+          },
+          "fix_verified": {
+            "type": "boolean",
+            "title": "Fix Verified"
           },
           "closed_at": {
             "anyOf": [
@@ -3915,6 +5893,17 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
+          },
+          "latest_duplicate_excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Duplicate Excerpt"
           }
         },
         "type": "object",
@@ -3929,12 +5918,14 @@
           "duplicate_count",
           "workflow_status",
           "progress",
+          "fix_verified",
           "closed_at",
           "assignee",
           "latest_job",
           "created_at"
         ],
-        "title": "ReportItem"
+        "title": "ReportItem",
+        "description": "`progress` is the dashboard stage, computed from `workflow_status`, `fix_verified` and\nthe latest job (first matching row wins):\n\n| workflow_status | latest job                                    | progress      |\n|-----------------|-----------------------------------------------|---------------|\n| closed          | (any)                                         | `closed`      |\n| dismissed       | (any)                                         | `dismissed`   |\n| received/fixing | (any), with `fix_verified`                    | `verified`    |\n| fixing          | (any)                                         | `fixing`      |\n| received        | none, `run_blocked = quota` (parked)          | `waiting_quota` |\n| received        | none                                          | `new`         |\n| received        | queued / running / cancelling                 | `reproducing` |\n| received        | finished, verdict `reproduced`                | `reproduced`  |\n| received        | finished, any other verdict or none           | `triaged`     |\n\nFinished = completed / inconclusive / needs_info / failed / cancelled. `fix_verified` = the\nlatest *finished* job is a retest that ended completed + not_reproduced. Dashboard stages:\nnew → 신규 신고, reproducing → 재현 중, reproduced/triaged → 재현 완료, fixing → 버그 수정 중,\nverified → 수정 확인됨 (awaiting a manual close), waiting_quota → 한도 대기 (stored over\nthe daily quota; a rerun `fresh` starts it), closed → 마감 (closed by a person, only\nonce the fix is verified). dismissed is a manual side exit."
       },
       "ReportList": {
         "properties": {
@@ -3955,6 +5946,28 @@
               }
             ],
             "title": "Next Cursor"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
           }
         },
         "type": "object",
@@ -3962,7 +5975,114 @@
           "items",
           "next_cursor"
         ],
-        "title": "ReportList"
+        "title": "ReportList",
+        "description": "Cursor mode (`cursor` given): `total`/`page` are null. Otherwise page mode: `page` is\nthe 1-based page and `total` the number of matching reports. `next_cursor` is always set\nwhen more rows follow, so a page-mode client can also continue with the cursor."
+      },
+      "ReportStats": {
+        "properties": {
+          "days": {
+            "type": "integer",
+            "title": "Days"
+          },
+          "window_from": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window From"
+          },
+          "window_to": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window To"
+          },
+          "auto_reproduction_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Auto Reproduction Rate"
+          },
+          "avg_reproduction_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Reproduction Seconds"
+          },
+          "fix_verified_count": {
+            "type": "integer",
+            "title": "Fix Verified Count"
+          },
+          "by_page": {
+            "items": {
+              "$ref": "#/components/schemas/PageCount"
+            },
+            "type": "array",
+            "title": "By Page"
+          }
+        },
+        "type": "object",
+        "required": [
+          "days",
+          "window_from",
+          "window_to",
+          "auto_reproduction_rate",
+          "avg_reproduction_seconds",
+          "fix_verified_count",
+          "by_page"
+        ],
+        "title": "ReportStats",
+        "description": "Over jobs/reports created in [`window_from`, `window_to`) (at most 90 days); `days` is\nits length rounded up."
+      },
+      "ReportSummary": {
+        "properties": {
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts"
+          },
+          "needs_attention": {
+            "items": {
+              "$ref": "#/components/schemas/AttentionItem"
+            },
+            "type": "array",
+            "title": "Needs Attention"
+          }
+        },
+        "type": "object",
+        "required": [
+          "counts",
+          "needs_attention"
+        ],
+        "title": "ReportSummary",
+        "description": "All of the org's reports (closed included), counted by `progress`; every value is\npresent, zero when none. `needs_attention`: newest 5 reports that are reproduced, parked\nover the quota (waiting_quota), or still `received` with a required action from the latest\nfinished job (see `required_actions`)."
+      },
+      "RequiredAction": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "RequiredAction"
       },
       "ScopeResponse": {
         "properties": {
@@ -4021,6 +6141,11 @@
           "has_session": {
             "type": "boolean",
             "title": "Has Session"
+          },
+          "has_test_account": {
+            "type": "boolean",
+            "title": "Has Test Account",
+            "default": false
           },
           "reset_adapter": {
             "type": "string",
@@ -4126,6 +6251,429 @@
         ],
         "title": "Solution"
       },
+      "TestAccountPut": {
+        "properties": {
+          "login_id": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 1,
+            "format": "password",
+            "title": "Login Id",
+            "writeOnly": true
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "format": "password",
+            "title": "Password",
+            "writeOnly": true
+          },
+          "login_path": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048,
+                "pattern": "^/(?:[^/?#\\\\\\s][^?#\\\\\\s]*)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Path"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "login_id",
+          "password"
+        ],
+        "title": "TestAccountPut"
+      },
+      "TestAccountResponse": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "in_use": {
+            "type": "boolean",
+            "title": "In Use",
+            "default": false
+          },
+          "login_id_masked": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Id Masked"
+          },
+          "login_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Path"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configured",
+          "login_id_masked",
+          "login_path",
+          "updated_at"
+        ],
+        "title": "TestAccountResponse",
+        "description": "Status only. The password (and the full login id) is never returned."
+      },
+      "TestConditionCreate": {
+        "properties": {
+          "condition_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "title": "Condition Id"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "browser_name": {
+            "type": "string",
+            "enum": [
+              "chromium",
+              "firefox",
+              "webkit"
+            ],
+            "title": "Browser Name",
+            "default": "chromium"
+          },
+          "width": {
+            "type": "integer",
+            "title": "Width",
+            "default": 1280
+          },
+          "height": {
+            "type": "integer",
+            "title": "Height",
+            "default": 800
+          },
+          "response_delay_ms": {
+            "type": "integer",
+            "maximum": 2000,
+            "minimum": 0,
+            "title": "Response Delay Ms",
+            "default": 0
+          },
+          "test_context_id": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Test Context Id",
+            "default": "anonymous"
+          },
+          "record_video": {
+            "type": "boolean",
+            "title": "Record Video",
+            "default": false
+          },
+          "reset_adapter": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Reset Adapter",
+            "default": "stateless"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "condition_id",
+          "label"
+        ],
+        "title": "TestConditionCreate"
+      },
+      "TestConditionList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TestConditionOut"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "TestConditionList"
+      },
+      "TestConditionOut": {
+        "properties": {
+          "condition_id": {
+            "type": "string",
+            "title": "Condition Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "browser_name": {
+            "type": "string",
+            "title": "Browser Name"
+          },
+          "width": {
+            "type": "integer",
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "title": "Height"
+          },
+          "response_delay_ms": {
+            "type": "integer",
+            "title": "Response Delay Ms"
+          },
+          "test_context_id": {
+            "type": "string",
+            "title": "Test Context Id"
+          },
+          "record_video": {
+            "type": "boolean",
+            "title": "Record Video"
+          },
+          "reset_adapter": {
+            "type": "string",
+            "title": "Reset Adapter"
+          },
+          "has_session": {
+            "type": "boolean",
+            "title": "Has Session"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "condition_id",
+          "label",
+          "browser_name",
+          "width",
+          "height",
+          "response_delay_ms",
+          "test_context_id",
+          "record_video",
+          "reset_adapter",
+          "has_session",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TestConditionOut"
+      },
+      "TestConditionPatch": {
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "browser_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "chromium",
+                  "firefox",
+                  "webkit"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Browser Name"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height"
+          },
+          "response_delay_ms": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2000,
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response Delay Ms"
+          },
+          "test_context_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Test Context Id"
+          },
+          "record_video": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Record Video"
+          },
+          "reset_adapter": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reset Adapter"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "TestConditionPatch"
+      },
+      "TimelineEntry": {
+        "properties": {
+          "stage": {
+            "type": "string",
+            "title": "Stage"
+          },
+          "step_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step Index"
+          },
+          "elapsed_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elapsed Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stage",
+          "step_index",
+          "elapsed_seconds"
+        ],
+        "title": "TimelineEntry"
+      },
+      "Timings": {
+        "properties": {
+          "total_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Seconds"
+          },
+          "model_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_seconds",
+          "model_seconds"
+        ],
+        "title": "Timings"
+      },
       "UserResponse": {
         "properties": {
           "id": {
@@ -4195,6 +6743,138 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VideoMedia": {
+        "properties": {
+          "attempt": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision"
+          },
+          "plan_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Sha256"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "truncated": {
+            "type": "boolean",
+            "title": "Truncated"
+          },
+          "capture_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capture Error"
+          },
+          "has_audio": {
+            "type": "boolean",
+            "title": "Has Audio"
+          },
+          "sampling_fps": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sampling Fps"
+          },
+          "frames_captured": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frames Captured"
+          },
+          "start_offset_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Offset Seconds"
+          },
+          "duration_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Seconds"
+          },
+          "artifact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "attempt",
+          "revision",
+          "plan_sha256",
+          "status",
+          "truncated",
+          "capture_error",
+          "has_audio",
+          "sampling_fps",
+          "frames_captured",
+          "start_offset_seconds",
+          "duration_seconds",
+          "artifact_id"
+        ],
+        "title": "VideoMedia",
+        "description": "One engine attempt's masked screen recording. `artifact_id` is set only for a stored,\nhash-verified, unexpired file; status says why there is none (failed, unavailable, ...)."
       },
       "WidgetConfig": {
         "properties": {
@@ -4438,7 +7118,8 @@
             "enum": [
               "received",
               "fixing",
-              "dismissed"
+              "dismissed",
+              "closed"
             ],
             "title": "Status"
           }
@@ -4448,7 +7129,8 @@
         "required": [
           "status"
         ],
-        "title": "WorkflowUpdate"
+        "title": "WorkflowUpdate",
+        "description": "`closed` is accepted only while `fix_verified` is true (else 409 FIX_NOT_VERIFIED)."
       }
     }
   }

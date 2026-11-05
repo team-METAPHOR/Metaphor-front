@@ -11,7 +11,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Health Check */
+        /**
+         * Health Check
+         * @description Report API process liveness without checking external dependencies.
+         */
         get: operations["health_check_api_v1_health_get"];
         put?: never;
         post?: never;
@@ -282,6 +285,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orgs/{org_id}/report-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Report Summary
+         * @description Dashboard cards: report counts by progress and the newest reports needing attention.
+         */
+        get: operations["report_summary_api_v1_orgs__org_id__report_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orgs/{org_id}/report-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Report Stats
+         * @description Reproduction metrics over `from`..`to` (to exclusive, default now; at most 90 days), or
+         *     the last `days` days (clamped to 1..90) when `from` is absent. Optional `program_id`.
+         */
+        get: operations["report_stats_api_v1_orgs__org_id__report_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/programs": {
         parameters: {
             query?: never;
@@ -352,6 +396,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/programs/{program_id}/test-conditions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Conditions */
+        get: operations["list_conditions_api_v1_programs__program_id__test_conditions_get"];
+        put?: never;
+        /** Create Condition */
+        post: operations["create_condition_api_v1_programs__program_id__test_conditions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/programs/{program_id}/test-conditions/{condition_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Condition */
+        delete: operations["delete_condition_api_v1_programs__program_id__test_conditions__condition_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Condition */
+        patch: operations["update_condition_api_v1_programs__program_id__test_conditions__condition_id__patch"];
+        trace?: never;
+    };
     "/api/v1/programs/{program_id}/widget-settings": {
         parameters: {
             query?: never;
@@ -387,6 +467,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/programs/{program_id}/test-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Test Account */
+        get: operations["get_test_account_api_v1_programs__program_id__test_account_get"];
+        /** Put Test Account */
+        put: operations["put_test_account_api_v1_programs__program_id__test_account_put"];
+        post?: never;
+        /** Delete Test Account */
+        delete: operations["delete_test_account_api_v1_programs__program_id__test_account_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reports": {
         parameters: {
             query?: never;
@@ -394,7 +493,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Reports */
+        /**
+         * List Reports
+         * @description Closed reports are hidden unless `include_closed=true` or `progress=closed`.
+         *     `from` is inclusive, `to` exclusive (created_at). Without `cursor` the response is
+         *     page-numbered (`page`, `total`). `sort`: `created_desc` (default) or `created_asc`; a
+         *     cursor must be reused with the same `sort`.
+         */
         get: operations["list_reports_api_v1_reports_get"];
         put?: never;
         /** Create Report */
@@ -414,6 +519,26 @@ export interface paths {
         };
         /** Get Report */
         get: operations["get_report_api_v1_reports__report_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}/duplicates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Duplicates
+         * @description Widget submissions merged into this report, newest first (cursor-paged).
+         */
+        get: operations["list_duplicates_api_v1_reports__report_id__duplicates_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -480,7 +605,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List Report Jobs
+         * @description All runs of the report, newest first (cursor-paged).
+         */
+        get: operations["list_report_jobs_api_v1_reports__report_id__validation_jobs_get"];
         put?: never;
         /** Request Validation Job */
         post: operations["request_validation_job_api_v1_reports__report_id__validation_jobs_post"];
@@ -516,6 +645,27 @@ export interface paths {
         };
         /** Get Result */
         get: operations["get_result_api_v1_validation_jobs__job_id__result_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/validation-jobs/{job_id}/conditions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Conditions
+         * @description Per-condition results of a condition-matrix job (409 NOT_CONDITION_JOB otherwise).
+         *     `most_progressed_condition_ids` counts completed steps; it is not symptom similarity.
+         */
+        get: operations["list_conditions_api_v1_validation_jobs__job_id__conditions_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -613,6 +763,34 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AiHypotheses */
+        AiHypotheses: {
+            /**
+             * Source
+             * @default ai
+             * @constant
+             */
+            source: "ai";
+            /**
+             * Root Cause Confirmed
+             * @default false
+             * @constant
+             */
+            root_cause_confirmed: false;
+            /** Items */
+            items: components["schemas"]["Hypothesis"][];
+        };
+        /** AiQuestions */
+        AiQuestions: {
+            /**
+             * Source
+             * @default ai
+             * @constant
+             */
+            source: "ai";
+            /** Items */
+            items: string[];
+        };
         /** AllowedOrigin */
         AllowedOrigin: {
             /** Origin */
@@ -641,8 +819,13 @@ export interface components {
         ArtifactList: {
             /** Items */
             items: components["schemas"]["ArtifactItem"][];
+            media: components["schemas"]["JobMedia"];
         };
-        /** Assignee */
+        /**
+         * Assignee
+         * @description `active: false` = no longer an active member of the report's org; the assignment is kept
+         *     but display_name/email are withheld (null) so a former member's contact is not exposed.
+         */
         Assignee: {
             /** Id */
             id: string;
@@ -653,10 +836,39 @@ export interface components {
             /** Active */
             active: boolean;
         };
-        /** AssigneeUpdate */
+        /**
+         * AssigneeUpdate
+         * @description `user_id: null` unassigns. The user must be an active member of the report's org.
+         */
         AssigneeUpdate: {
             /** User Id */
             user_id: string | null;
+        };
+        /** AttemptVideo */
+        AttemptVideo: {
+            /** Status */
+            status: string;
+            /** Start Offset Seconds */
+            start_offset_seconds: number | null;
+            /** Duration Seconds */
+            duration_seconds: number | null;
+            /** Capture Error */
+            capture_error: string | null;
+        };
+        /** AttentionItem */
+        AttentionItem: {
+            /** Id */
+            id: string;
+            /** Number */
+            number: number;
+            /** Title */
+            title: string;
+            /**
+             * Progress
+             * @enum {string}
+             */
+            progress: "new" | "reproducing" | "reproduced" | "triaged" | "verified" | "waiting_quota" | "fixing" | "dismissed" | "closed";
+            reason?: components["schemas"]["RequiredAction"] | null;
         };
         /** AutoDetect */
         AutoDetect: {
@@ -668,6 +880,22 @@ export interface components {
             unhandled_rejection: boolean;
             /** Http 5Xx */
             http_5xx: boolean;
+        };
+        /**
+         * BestAttempt
+         * @description Latest finished job's stored engine result, as redacted plain text (never HTML).
+         */
+        BestAttempt: {
+            /** Job Id */
+            job_id: string;
+            /** Verdict */
+            verdict: string | null;
+            /** Reason Code */
+            reason_code: string | null;
+            /** Summary */
+            summary: string | null;
+            /** Hypothesis */
+            hypothesis: string | null;
         };
         /** Body_create_report_api_v1_reports_post */
         Body_create_report_api_v1_reports_post: {
@@ -715,8 +943,72 @@ export interface components {
             answers: string;
         };
         /**
+         * ConditionInfo
+         * @description The registered condition as frozen in the job snapshot (no session reference).
+         */
+        ConditionInfo: {
+            /** Label */
+            label: string;
+            /** Browser Name */
+            browser_name: string;
+            /** Width */
+            width: number;
+            /** Height */
+            height: number;
+            /** Response Delay Ms */
+            response_delay_ms: number;
+            /** Test Context Id */
+            test_context_id: string;
+            /** Record Video */
+            record_video: boolean;
+            /** Has Session */
+            has_session: boolean;
+        };
+        /** ConditionResultItem */
+        ConditionResultItem: {
+            /** Index */
+            index: number;
+            /** Condition Id */
+            condition_id: string;
+            condition: components["schemas"]["ConditionInfo"] | null;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "reproduced" | "not_reproduced" | "blocked" | "inconclusive" | "not_run" | "running";
+            /** Status */
+            status: string;
+            /** Verdict */
+            verdict: string | null;
+            /** Error Code */
+            error_code: string | null;
+            /** Stop Point */
+            stop_point: string | null;
+            /** Duration Ms */
+            duration_ms: number | null;
+        };
+        /** ConditionResultList */
+        ConditionResultList: {
+            /** Items */
+            items: components["schemas"]["ConditionResultItem"][];
+            /** Attempted */
+            attempted: number;
+            /** Reproduced */
+            reproduced: number;
+            /** Matched Condition Ids */
+            matched_condition_ids: string[];
+            /** Most Progressed Condition Ids */
+            most_progressed_condition_ids: string[];
+            /** Progress Basis */
+            progress_basis: string;
+            /** Not Selected Condition Ids */
+            not_selected_condition_ids: string[];
+        };
+        /**
          * DeveloperHandoff
-         * @description Model-generated text, returned as plain data only (never HTML, links not followed).
+         * @description Plain data only (never HTML, links not followed). `state` and the analysis fields
+         *     (summary … classification) are the AI analysis (`ai_generated`); `diagnosis` is the
+         *     execution diagnosis with per-section provenance.
          */
         DeveloperHandoff: {
             /**
@@ -742,12 +1034,86 @@ export interface components {
             confidence: string | null;
             /** Classification */
             classification: string | null;
+            /** Ai Generated */
+            ai_generated: boolean;
             /**
-             * Ai Generated
-             * @default true
+             * Diagnosis State
+             * @enum {string}
+             */
+            diagnosis_state: "not_run" | "pending" | "cancelled" | "available" | "derived" | "unavailable" | "expired";
+            diagnosis: components["schemas"]["Diagnosis"] | null;
+        };
+        /**
+         * Diagnosis
+         * @description Deterministic run diagnosis (`source: execution`). Only `hypotheses` and
+         *     `missing_information` are model output, and they say so with their own `source`.
+         */
+        Diagnosis: {
+            /**
+             * Source
+             * @default execution
              * @constant
              */
-            ai_generated: true;
+            source: "execution";
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "reproduced" | "not_observed" | "needs_information" | "execution_failed" | "cancelled" | "inconclusive";
+            /** Category */
+            category: string | null;
+            /** Summary */
+            summary: string | null;
+            /** Interpretation */
+            interpretation: string | null;
+            /** Reason Codes */
+            reason_codes: string[];
+            /**
+             * Root Cause Confirmed
+             * @default false
+             * @constant
+             */
+            root_cause_confirmed: false;
+            /** Attempts */
+            attempts: components["schemas"]["DiagnosisAttempt"][];
+            /** Observed Facts */
+            observed_facts: components["schemas"]["ObservedFact"][];
+            /** Next Actions */
+            next_actions: components["schemas"]["NextAction"][];
+            missing_information: components["schemas"]["AiQuestions"];
+            hypotheses: components["schemas"]["AiHypotheses"];
+            timings: components["schemas"]["Timings"] | null;
+        };
+        /** DiagnosisAttempt */
+        DiagnosisAttempt: {
+            /** Attempt */
+            attempt: number;
+            /** Stage */
+            stage: string | null;
+            /** Completed Steps */
+            completed_steps: number;
+            /** Total Steps */
+            total_steps: number | null;
+            /** Failed Step Index */
+            failed_step_index: number | null;
+            next_step: components["schemas"]["NextStep"] | null;
+            /** Blocker */
+            blocker: string | null;
+            /** Ready */
+            ready: boolean | null;
+            /** Expected Observed */
+            expected_observed: boolean | null;
+            /** Symptom Observed */
+            symptom_observed: boolean | null;
+            /** Elapsed Seconds */
+            elapsed_seconds: number | null;
+            /** Evidence Ids */
+            evidence_ids: string[];
+            /** Observation Ids */
+            observation_ids: string[];
+            /** Timeline */
+            timeline: components["schemas"]["TimelineEntry"][];
+            video: components["schemas"]["AttemptVideo"] | null;
         };
         /** EventList */
         EventList: {
@@ -769,6 +1135,19 @@ export interface components {
             detail: {
                 [key: string]: unknown;
             };
+        };
+        /** ExportedTestMedia */
+        ExportedTestMedia: {
+            /** Status */
+            status: string;
+            /** Plan Sha256 */
+            plan_sha256: string | null;
+            /** Artifact Id */
+            artifact_id: string | null;
+            /** Required Environment */
+            required_environment: string[];
+            /** Error Code */
+            error_code: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -810,7 +1189,7 @@ export interface components {
              * Role
              * @enum {string}
              */
-            role: "developer" | "reviewer" | "admin";
+            role: "admin" | "developer" | "viewer";
             /**
              * Expires In Days
              * @default 7
@@ -866,6 +1245,30 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** JobList */
+        JobList: {
+            /** Items */
+            items: components["schemas"]["JobOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * JobMedia
+         * @description `video_enabled` is null while the job runs or once its result is gone (retention).
+         */
+        JobMedia: {
+            /** Video Enabled */
+            video_enabled: boolean | null;
+            /** Videos */
+            videos: components["schemas"]["VideoMedia"][];
+            test_export: components["schemas"]["ExportedTestMedia"] | null;
+            /**
+             * Trace Available
+             * @default false
+             * @constant
+             */
+            trace_available: false;
+        };
         /**
          * JobOut
          * @description Public job view. No engine id, storage paths or scope snapshot.
@@ -903,6 +1306,12 @@ export interface components {
             parent_job_id: string | null;
             /** Baseline Job Id */
             baseline_job_id: string | null;
+            /** Has Conditions */
+            has_conditions: boolean;
+            /** Retry After Seconds */
+            retry_after_seconds?: number | null;
+            /** Retry Available At */
+            retry_available_at?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -935,6 +1344,15 @@ export interface components {
             baseline_job_id?: string | null;
             /** App Version */
             app_version?: string | null;
+            /** Condition Ids */
+            condition_ids?: string[] | null;
+            /**
+             * Auto Select Conditions
+             * @default false
+             */
+            auto_select_conditions: boolean;
+            /** Max Conditions */
+            max_conditions?: number | null;
         };
         /** JobResult */
         JobResult: {
@@ -987,7 +1405,7 @@ export interface components {
              * Role
              * @enum {string}
              */
-            role: "developer" | "reviewer" | "admin";
+            role: "admin" | "developer" | "viewer";
         };
         /** MembershipResponse */
         MembershipResponse: {
@@ -997,6 +1415,47 @@ export interface components {
             org_name: string;
             /** Role */
             role: string;
+        };
+        /** NextAction */
+        NextAction: {
+            /** Code */
+            code: string;
+            /** Owner */
+            owner: string;
+            /** Message */
+            message: string;
+            /** Required Fields */
+            required_fields: string[];
+            /** Retry After Seconds */
+            retry_after_seconds?: number | null;
+        };
+        /**
+         * NextStep
+         * @description The plan step an attempt stopped before. Typed values are never returned.
+         */
+        NextStep: {
+            /** Action */
+            action: string;
+            /** Target */
+            target: string;
+        };
+        /** ObservedFact */
+        ObservedFact: {
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "network_observation";
+            /** Method */
+            method: string | null;
+            /** Url */
+            url: string;
+            /** Status */
+            status: number | null;
+            /** Blocker */
+            blocker: string | null;
+            /** Observation Ids */
+            observation_ids: string[];
         };
         /** OrgCreate */
         OrgCreate: {
@@ -1050,6 +1509,13 @@ export interface components {
             verified_at: string | null;
             /** Last Checked At */
             last_checked_at: string | null;
+        };
+        /** PageCount */
+        PageCount: {
+            /** Path */
+            path: string;
+            /** Count */
+            count: number;
         };
         /** PasswordChangeRequest */
         PasswordChangeRequest: {
@@ -1221,7 +1687,7 @@ export interface components {
             /** Program Id */
             program_id: string;
             /** Validation Job Id */
-            validation_job_id: string;
+            validation_job_id: string | null;
             /** Status */
             status: string;
             /**
@@ -1254,7 +1720,9 @@ export interface components {
              * Progress
              * @enum {string}
              */
-            progress: "new" | "reproducing" | "reproduced" | "triaged" | "fixing" | "dismissed" | "closed";
+            progress: "new" | "reproducing" | "reproduced" | "triaged" | "verified" | "waiting_quota" | "fixing" | "dismissed" | "closed";
+            /** Fix Verified */
+            fix_verified: boolean;
             /** Closed At */
             closed_at: string | null;
             assignee: components["schemas"]["Assignee"] | null;
@@ -1264,6 +1732,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Latest Duplicate Excerpt */
+            latest_duplicate_excerpt?: string | null;
             /** Target Url */
             target_url: string;
             /** Description */
@@ -1285,8 +1755,74 @@ export interface components {
              * @default false
              */
             scrubbed: boolean;
+            /**
+             * Required Actions
+             * @default []
+             */
+            required_actions: components["schemas"]["RequiredAction"][];
+            best_attempt?: components["schemas"]["BestAttempt"] | null;
         };
-        /** ReportItem */
+        /**
+         * ReportDuplicateItem
+         * @description A widget submission merged into this report (same error fingerprint within 24 h).
+         *     `description` is redacted plain text; `client_context` is the same whitelisted SDK
+         *     metadata the report itself keeps. The screenshot (masked) downloads through
+         *     `GET /evidence/{input_artifact_id}/download`.
+         */
+        ReportDuplicateItem: {
+            /** Id */
+            id: string;
+            /**
+             * Received At
+             * Format: date-time
+             */
+            received_at: string;
+            /** Description */
+            description: string;
+            /** Has Screenshot */
+            has_screenshot: boolean;
+            /** Input Artifact Id */
+            input_artifact_id: string | null;
+            /** Client Context */
+            client_context: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * ReportDuplicateList
+         * @description Newest first. Only the first stored duplicates are kept (see `duplicate_count` for
+         *     the total); the list is empty once the report's retention scrub ran.
+         */
+        ReportDuplicateList: {
+            /** Items */
+            items: components["schemas"]["ReportDuplicateItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * ReportItem
+         * @description `progress` is the dashboard stage, computed from `workflow_status`, `fix_verified` and
+         *     the latest job (first matching row wins):
+         *
+         *     | workflow_status | latest job                                    | progress      |
+         *     |-----------------|-----------------------------------------------|---------------|
+         *     | closed          | (any)                                         | `closed`      |
+         *     | dismissed       | (any)                                         | `dismissed`   |
+         *     | received/fixing | (any), with `fix_verified`                    | `verified`    |
+         *     | fixing          | (any)                                         | `fixing`      |
+         *     | received        | none, `run_blocked = quota` (parked)          | `waiting_quota` |
+         *     | received        | none                                          | `new`         |
+         *     | received        | queued / running / cancelling                 | `reproducing` |
+         *     | received        | finished, verdict `reproduced`                | `reproduced`  |
+         *     | received        | finished, any other verdict or none           | `triaged`     |
+         *
+         *     Finished = completed / inconclusive / needs_info / failed / cancelled. `fix_verified` = the
+         *     latest *finished* job is a retest that ended completed + not_reproduced. Dashboard stages:
+         *     new → 신규 신고, reproducing → 재현 중, reproduced/triaged → 재현 완료, fixing → 버그 수정 중,
+         *     verified → 수정 확인됨 (awaiting a manual close), waiting_quota → 한도 대기 (stored over
+         *     the daily quota; a rerun `fresh` starts it), closed → 마감 (closed by a person, only
+         *     once the fix is verified). dismissed is a manual side exit.
+         */
         ReportItem: {
             /** Id */
             id: string;
@@ -1310,7 +1846,9 @@ export interface components {
              * Progress
              * @enum {string}
              */
-            progress: "new" | "reproducing" | "reproduced" | "triaged" | "fixing" | "dismissed" | "closed";
+            progress: "new" | "reproducing" | "reproduced" | "triaged" | "verified" | "waiting_quota" | "fixing" | "dismissed" | "closed";
+            /** Fix Verified */
+            fix_verified: boolean;
             /** Closed At */
             closed_at: string | null;
             assignee: components["schemas"]["Assignee"] | null;
@@ -1320,13 +1858,73 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Latest Duplicate Excerpt */
+            latest_duplicate_excerpt?: string | null;
         };
-        /** ReportList */
+        /**
+         * ReportList
+         * @description Cursor mode (`cursor` given): `total`/`page` are null. Otherwise page mode: `page` is
+         *     the 1-based page and `total` the number of matching reports. `next_cursor` is always set
+         *     when more rows follow, so a page-mode client can also continue with the cursor.
+         */
         ReportList: {
             /** Items */
             items: components["schemas"]["ReportItem"][];
             /** Next Cursor */
             next_cursor: string | null;
+            /** Total */
+            total?: number | null;
+            /** Page */
+            page?: number | null;
+        };
+        /**
+         * ReportStats
+         * @description Over jobs/reports created in [`window_from`, `window_to`) (at most 90 days); `days` is
+         *     its length rounded up.
+         */
+        ReportStats: {
+            /** Days */
+            days: number;
+            /**
+             * Window From
+             * Format: date-time
+             */
+            window_from: string;
+            /**
+             * Window To
+             * Format: date-time
+             */
+            window_to: string;
+            /** Auto Reproduction Rate */
+            auto_reproduction_rate: number | null;
+            /** Avg Reproduction Seconds */
+            avg_reproduction_seconds: number | null;
+            /** Fix Verified Count */
+            fix_verified_count: number;
+            /** By Page */
+            by_page: components["schemas"]["PageCount"][];
+        };
+        /**
+         * ReportSummary
+         * @description All of the org's reports (closed included), counted by `progress`; every value is
+         *     present, zero when none. `needs_attention`: newest 5 reports that are reproduced, parked
+         *     over the quota (waiting_quota), or still `received` with a required action from the latest
+         *     finished job (see `required_actions`).
+         */
+        ReportSummary: {
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** Needs Attention */
+            needs_attention: components["schemas"]["AttentionItem"][];
+        };
+        /** RequiredAction */
+        RequiredAction: {
+            /** Code */
+            code: string;
+            /** Message */
+            message: string;
         };
         /** ScopeResponse */
         ScopeResponse: {
@@ -1352,6 +1950,11 @@ export interface components {
             mask_selectors: string[];
             /** Has Session */
             has_session: boolean;
+            /**
+             * Has Test Account
+             * @default false
+             */
+            has_test_account: boolean;
             /** Reset Adapter */
             reset_adapter: string;
             /**
@@ -1382,6 +1985,156 @@ export interface components {
             /** Tradeoffs */
             tradeoffs: string[];
         };
+        /** TestAccountPut */
+        TestAccountPut: {
+            /**
+             * Login Id
+             * Format: password
+             */
+            login_id: string;
+            /**
+             * Password
+             * Format: password
+             */
+            password: string;
+            /** Login Path */
+            login_path?: string | null;
+        };
+        /**
+         * TestAccountResponse
+         * @description Status only. The password (and the full login id) is never returned.
+         */
+        TestAccountResponse: {
+            /** Configured */
+            configured: boolean;
+            /**
+             * In Use
+             * @default false
+             */
+            in_use: boolean;
+            /** Login Id Masked */
+            login_id_masked: string | null;
+            /** Login Path */
+            login_path: string | null;
+            /** Updated At */
+            updated_at: string | null;
+        };
+        /** TestConditionCreate */
+        TestConditionCreate: {
+            /** Condition Id */
+            condition_id: string;
+            /** Label */
+            label: string;
+            /**
+             * Browser Name
+             * @default chromium
+             * @enum {string}
+             */
+            browser_name: "chromium" | "firefox" | "webkit";
+            /**
+             * Width
+             * @default 1280
+             */
+            width: number;
+            /**
+             * Height
+             * @default 800
+             */
+            height: number;
+            /**
+             * Response Delay Ms
+             * @default 0
+             */
+            response_delay_ms: number;
+            /**
+             * Test Context Id
+             * @default anonymous
+             */
+            test_context_id: string;
+            /**
+             * Record Video
+             * @default false
+             */
+            record_video: boolean;
+            /**
+             * Reset Adapter
+             * @default stateless
+             */
+            reset_adapter: string;
+        };
+        /** TestConditionList */
+        TestConditionList: {
+            /** Items */
+            items: components["schemas"]["TestConditionOut"][];
+        };
+        /** TestConditionOut */
+        TestConditionOut: {
+            /** Condition Id */
+            condition_id: string;
+            /** Label */
+            label: string;
+            /** Browser Name */
+            browser_name: string;
+            /** Width */
+            width: number;
+            /** Height */
+            height: number;
+            /** Response Delay Ms */
+            response_delay_ms: number;
+            /** Test Context Id */
+            test_context_id: string;
+            /** Record Video */
+            record_video: boolean;
+            /** Reset Adapter */
+            reset_adapter: string;
+            /** Has Session */
+            has_session: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** TestConditionPatch */
+        TestConditionPatch: {
+            /** Label */
+            label?: string | null;
+            /** Browser Name */
+            browser_name?: ("chromium" | "firefox" | "webkit") | null;
+            /** Width */
+            width?: number | null;
+            /** Height */
+            height?: number | null;
+            /** Response Delay Ms */
+            response_delay_ms?: number | null;
+            /** Test Context Id */
+            test_context_id?: string | null;
+            /** Record Video */
+            record_video?: boolean | null;
+            /** Reset Adapter */
+            reset_adapter?: string | null;
+        };
+        /** TimelineEntry */
+        TimelineEntry: {
+            /** Stage */
+            stage: string;
+            /** Step Index */
+            step_index: number | null;
+            /** Elapsed Seconds */
+            elapsed_seconds: number | null;
+        };
+        /** Timings */
+        Timings: {
+            /** Total Seconds */
+            total_seconds: number | null;
+            /** Model Seconds */
+            model_seconds: number | null;
+        };
         /** UserResponse */
         UserResponse: {
             /** Id */
@@ -1403,6 +2156,37 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /**
+         * VideoMedia
+         * @description One engine attempt's masked screen recording. `artifact_id` is set only for a stored,
+         *     hash-verified, unexpired file; status says why there is none (failed, unavailable, ...).
+         */
+        VideoMedia: {
+            /** Attempt */
+            attempt: number | null;
+            /** Revision */
+            revision: number | null;
+            /** Plan Sha256 */
+            plan_sha256: string | null;
+            /** Status */
+            status: string;
+            /** Truncated */
+            truncated: boolean;
+            /** Capture Error */
+            capture_error: string | null;
+            /** Has Audio */
+            has_audio: boolean;
+            /** Sampling Fps */
+            sampling_fps: number | null;
+            /** Frames Captured */
+            frames_captured: number | null;
+            /** Start Offset Seconds */
+            start_offset_seconds: number | null;
+            /** Duration Seconds */
+            duration_seconds: number | null;
+            /** Artifact Id */
+            artifact_id: string | null;
         };
         /** WidgetConfig */
         WidgetConfig: {
@@ -1470,13 +2254,16 @@ export interface components {
             /** Updated At */
             updated_at: string | null;
         };
-        /** WorkflowUpdate */
+        /**
+         * WorkflowUpdate
+         * @description `closed` is accepted only while `fix_verified` is true (else 409 FIX_NOT_VERIFIED).
+         */
         WorkflowUpdate: {
             /**
              * Status
              * @enum {string}
              */
-            status: "received" | "fixing" | "dismissed";
+            status: "received" | "fixing" | "dismissed" | "closed";
         };
     };
     responses: never;
@@ -2069,6 +2856,73 @@ export interface operations {
             };
         };
     };
+    report_summary_api_v1_orgs__org_id__report_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_stats_api_v1_orgs__org_id__report_stats_get: {
+        parameters: {
+            query?: {
+                days?: number;
+                from?: string | null;
+                to?: string | null;
+                program_id?: string | null;
+            };
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportStats"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_programs_api_v1_programs_get: {
         parameters: {
             query?: never;
@@ -2250,6 +3104,138 @@ export interface operations {
             };
         };
     };
+    list_conditions_api_v1_programs__program_id__test_conditions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestConditionList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_condition_api_v1_programs__program_id__test_conditions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TestConditionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestConditionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_condition_api_v1_programs__program_id__test_conditions__condition_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                program_id: string;
+                condition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_condition_api_v1_programs__program_id__test_conditions__condition_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                program_id: string;
+                condition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TestConditionPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestConditionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_widget_settings_api_v1_programs__program_id__widget_settings_get: {
         parameters: {
             query?: never;
@@ -2347,6 +3333,101 @@ export interface operations {
             };
         };
     };
+    get_test_account_api_v1_programs__program_id__test_account_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestAccountResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_test_account_api_v1_programs__program_id__test_account_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TestAccountPut"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestAccountResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_test_account_api_v1_programs__program_id__test_account_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_reports_api_v1_reports_get: {
         parameters: {
             query?: {
@@ -2356,6 +3437,13 @@ export interface operations {
                 program_id?: string | null;
                 /** @description "me" or a user id */
                 assignee?: string | null;
+                progress?: ("new" | "reproducing" | "reproduced" | "triaged" | "verified" | "waiting_quota" | "fixing" | "dismissed" | "closed")[] | null;
+                include_closed?: boolean;
+                from?: string | null;
+                to?: string | null;
+                q?: string | null;
+                page?: number | null;
+                sort?: "created_desc" | "created_asc";
             };
             header?: never;
             path?: never;
@@ -2436,6 +3524,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReportDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_duplicates_api_v1_reports__report_id__duplicates_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportDuplicateList"];
                 };
             };
             /** @description Validation Error */
@@ -2556,6 +3678,40 @@ export interface operations {
             };
         };
     };
+    list_report_jobs_api_v1_reports__report_id__validation_jobs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     request_validation_job_api_v1_reports__report_id__validation_jobs_post: {
         parameters: {
             query?: never;
@@ -2642,6 +3798,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JobResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_conditions_api_v1_validation_jobs__job_id__conditions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConditionResultList"];
                 };
             };
             /** @description Validation Error */
@@ -2785,7 +3972,9 @@ export interface operations {
     download_api_v1_evidence__artifact_id__download_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                Range?: string | null;
+            };
             path: {
                 artifact_id: string;
             };
