@@ -108,16 +108,16 @@ function MetricCard({ label, children }: { label: string; children: React.ReactN
 function Accent({ value, unit }: { value: string; unit: string }) {
   return (
     <span className="font-bold tracking-[-0.04em] text-primary-ink">
-      <span className="text-5xl">{value}</span>
-      <span className="text-[40px]">{unit}</span>
+      <span className="text-[42px]">{value}</span>
+      <span className="text-[34px]">{unit}</span>
     </span>
   );
 }
 
 function Empty({ note }: { note: string }) {
   return (
-    <span className="flex items-baseline gap-3">
-      <span className="text-5xl font-bold text-faint">-</span>
+    <span className="flex items-center gap-3">
+      <span className="text-[42px] font-bold text-faint">-</span>
       <span className="text-sm text-muted">{note}</span>
     </span>
   );

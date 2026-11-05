@@ -40,7 +40,7 @@ export function Sidebar() {
             aria-expanded={!collapsed}
             className="flex size-9 items-center justify-center rounded-md hover:bg-sidebar-active"
           >
-            <Icon name="sidebar-collapse" size={28} className={collapsed ? "rotate-180" : undefined} />
+            <Icon name="sidebar-collapse" size={24}className={collapsed ? "rotate-180" : undefined} />
           </button>
         </div>
         <Suspense fallback={<NavLinks pathname="" collapsed={collapsed} />}>

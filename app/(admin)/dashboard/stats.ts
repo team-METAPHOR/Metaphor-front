@@ -2,10 +2,10 @@ import { type Report, startOfWeek } from "../reports/all-reports";
 
 /** 확인할 제보 카드 순서. 카드를 누르면 같은 상태로 거른 제보 목록으로 간다. */
 export const STATUS_CARDS = [
-  { progress: "reproduced", label: "재현 완료" },
+  { progress: "new", label: "신규 제보" },
   { progress: "reproducing", label: "재현 중" },
   { progress: "triaged", label: "재현 안 됨" },
-  { progress: "new", label: "신규 제보" },
+  { progress: "reproduced", label: "재현 완료" },
   { progress: "fixing", label: "버그 수정 중" },
 ] as const;
 

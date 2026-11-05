@@ -166,6 +166,19 @@ body {
 }
 
 /*
+ * 기본 드롭다운은 화살표가 오른쪽 끝에 붙는다. 자체 화살표를 그리는 select(appearance-none)를 빼고
+ * 화살표를 안쪽으로 들여 그린다. 유틸리티의 px-*보다 이겨야 해서 레이어 밖에 둔다.
+ */
+select:not(.appearance-none) {
+  appearance: none;
+  background-image: url(/icons/select-chevron.svg);
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+/*
  * Tailwind v4는 버튼 커서를 기본(default)으로 둔다.
  * 누를 수 있는 요소는 모두 손가락 커서로, 막힌 요소는 금지 커서로 맞춘다.
  */
