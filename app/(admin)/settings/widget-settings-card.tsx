@@ -20,19 +20,28 @@ const toggles = [
 
 type ToggleField = (typeof toggles)[number]["field"];
 
-/** scheme://host[:port] 형식이면 정규화한 값을, 아니면 null을 돌려준다. */
-function normalizeOrigin(input: string): string | null {
+const LOCAL_HOSTS = ["localhost", "127.0.0.1"];
+
+/**
+ * scheme://host[:port] 형식이면 정규화한 Origin을, 아니면 오류 문구를 돌려준다.
+ * 서버와 같이 https만 받고, http는 localhost·127.0.0.1만 받는다.
+ */
+function normalizeOrigin(input: string): { origin: string } | { error: string } {
   const value = input.trim();
+  const formatError = { error: "scheme://host[:port] 형식으로 입력하세요. 예: https://shop.example.com" };
   let url: URL;
   try {
     url = new URL(value);
   } catch {
-    return null;
+    return formatError;
   }
-  if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+  if (url.protocol !== "http:" && url.protocol !== "https:") return formatError;
   // 경로, 쿼리, 끝 슬래시, 사용자 정보가 붙은 값은 Origin이 아니다.
-  if (url.origin.toLowerCase() !== value.toLowerCase()) return null;
-  return url.origin;
+  if (url.origin.toLowerCase() !== value.toLowerCase()) return formatError;
+  if (url.protocol === "http:" && !LOCAL_HOSTS.includes(url.hostname)) {
+    return { error: "https 주소만 등록할 수 있어요. http는 localhost, 127.0.0.1만 쓸 수 있어요." };
+  }
+  return { origin: url.origin };
 }
 
 export function WidgetSettingsCard({
@@ -45,8 +54,10 @@ export function WidgetSettingsCard({
   isAdmin: boolean;
 }) {
   const queryClient = useQueryClient();
-  const initialApproved = settings.allowed_origins.filter((o) => o.kind === "approved").map((o) => o.origin);
-  const mapped = settings.allowed_origins.filter((o) => o.kind === "mapped").map((o) => o.origin);
+  // 허용 Origin은 관리자가 관리하는 전체 목록이다. kind는 서버가 붙이는 표시일 뿐이다:
+  // approved = 사이트 기본 URL의 Origin, mapped = 그 밖의 Origin(운영 사이트 등).
+  const initialOrigins = settings.allowed_origins.map((o) => o.origin);
+  const mappedOrigins = new Set(settings.allowed_origins.filter((o) => o.kind === "mapped").map((o) => o.origin));
 
   const [flags, setFlags] = useState<Record<ToggleField, boolean>>(() => ({
     widget_enabled: settings.widget_enabled,
@@ -54,7 +65,7 @@ export function WidgetSettingsCard({
     auto_detect_enabled: settings.auto_detect_enabled,
     live_screenshot_enabled: settings.live_screenshot_enabled,
   }));
-  const [approved, setApproved] = useState<string[]>(initialApproved);
+  const [origins, setOrigins] = useState<string[]>(initialOrigins);
   const [newOrigin, setNewOrigin] = useState("");
   const [originError, setOriginError] = useState<string | null>(null);
 
@@ -64,8 +75,8 @@ export function WidgetSettingsCard({
     if (flags[field] !== settings[field]) patch[field] = flags[field];
   }
   const originsChanged =
-    approved.length !== initialApproved.length || approved.some((origin, i) => origin !== initialApproved[i]);
-  if (originsChanged) patch.allowed_origins = approved;
+    origins.length !== initialOrigins.length || origins.some((origin, i) => origin !== initialOrigins[i]);
+  if (originsChanged) patch.allowed_origins = origins;
   const dirty = Object.keys(patch).length > 0;
 
   const save = useMutation({
@@ -78,20 +89,21 @@ export function WidgetSettingsCard({
   });
 
   function addOrigin() {
-    const origin = normalizeOrigin(newOrigin);
-    if (!origin) {
-      setOriginError("scheme://host[:port] 형식으로 입력하세요. 예: https://shop.example.com");
+    const normalized = normalizeOrigin(newOrigin);
+    if ("error" in normalized) {
+      setOriginError(normalized.error);
       return;
     }
-    if (approved.includes(origin) || mapped.includes(origin)) {
+    const { origin } = normalized;
+    if (origins.includes(origin)) {
       setOriginError("이미 있는 Origin이에요.");
       return;
     }
-    if (approved.length >= MAX_ORIGINS) {
+    if (origins.length >= MAX_ORIGINS) {
       setOriginError(`최대 ${MAX_ORIGINS}개까지 등록할 수 있어요.`);
       return;
     }
-    setApproved([...approved, origin]);
+    setOrigins([...origins, origin]);
     setNewOrigin("");
     setOriginError(null);
   }
@@ -103,7 +115,7 @@ export function WidgetSettingsCard({
       auto_detect_enabled: settings.auto_detect_enabled,
       live_screenshot_enabled: settings.live_screenshot_enabled,
     });
-    setApproved(initialApproved);
+    setOrigins(initialOrigins);
     setNewOrigin("");
     setOriginError(null);
     save.reset();
@@ -153,22 +165,32 @@ export function WidgetSettingsCard({
             <div className="flex items-baseline justify-between">
               <h3 className="text-sm font-medium">허용 Origin</h3>
               <span className="text-xs text-muted">
-                {approved.length}/{MAX_ORIGINS}
+                {origins.length}/{MAX_ORIGINS}
               </span>
             </div>
             <p className="mt-0.5 text-xs text-muted">SDK가 신고를 보낼 수 있는 고객사 사이트 주소예요.</p>
 
             <ul className="mt-3 space-y-1.5">
-              {approved.map((origin) => (
+              {origins.map((origin) => (
                 <li
                   key={origin}
                   className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2"
                 >
-                  <span className="truncate font-mono text-xs">{origin}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className="truncate font-mono text-xs">{origin}</span>
+                    {mappedOrigins.has(origin) && (
+                      <span
+                        className="shrink-0"
+                        title="사이트 기본 URL과 다른 Origin이에요. 이곳(운영 사이트 등)에서 온 신고는 기본 URL에서 재현해요."
+                      >
+                        <Badge>운영 Origin</Badge>
+                      </span>
+                    )}
+                  </span>
                   {isAdmin && (
                     <button
                       type="button"
-                      onClick={() => setApproved(approved.filter((o) => o !== origin))}
+                      onClick={() => setOrigins(origins.filter((o) => o !== origin))}
                       className="shrink-0 text-xs text-muted hover:text-danger"
                       aria-label={`${origin} 삭제`}
                     >
@@ -177,18 +199,7 @@ export function WidgetSettingsCard({
                   )}
                 </li>
               ))}
-              {mapped.map((origin) => (
-                <li
-                  key={`mapped-${origin}`}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-border bg-background px-3 py-2"
-                >
-                  <span className="truncate font-mono text-xs text-muted">{origin}</span>
-                  <span title="사이트 기본 URL에서 서버가 자동으로 추가했어요. 여기서 바꿀 수 없어요.">
-                    <Badge>자동 추가</Badge>
-                  </span>
-                </li>
-              ))}
-              {approved.length === 0 && mapped.length === 0 && (
+              {origins.length === 0 && (
                 <li className="text-xs text-muted">등록된 Origin이 없어요.</li>
               )}
             </ul>
@@ -218,7 +229,7 @@ export function WidgetSettingsCard({
                   <button
                     type="button"
                     onClick={addOrigin}
-                    disabled={approved.length >= MAX_ORIGINS}
+                    disabled={origins.length >= MAX_ORIGINS}
                     className="shrink-0 rounded-lg border border-border px-3 py-2 text-xs font-medium hover:bg-background disabled:opacity-50"
                   >
                     추가
