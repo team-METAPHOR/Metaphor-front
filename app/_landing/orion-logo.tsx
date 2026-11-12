@@ -61,9 +61,9 @@ export function OrionLogo({ className, label, ref }: { className?: string; label
     >
       <defs>
         <linearGradient id={`${id}-metal`} gradientUnits="userSpaceOnUse" x1="0" y1="880" x2="0" y2="1190">
-          <stop offset="0" stopColor="#F3F5F9" />
-          <stop offset=".55" stopColor="#D3D8E2" />
-          <stop offset="1" stopColor="#A9B1C1" />
+          <stop offset="0" stopColor="#3a4258" />
+          <stop offset=".55" stopColor="#242b40" />
+          <stop offset="1" stopColor="#12172a" />
         </linearGradient>
         <linearGradient
           id={`${id}-sheen`}

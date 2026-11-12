@@ -84,8 +84,8 @@ export function InViewClass({ className, children, label }: { className?: string
 const NAV = [
   { href: "#how", label: "작동 방식" },
   { href: "#features", label: "기능" },
-  { href: "#security", label: "보안" },
   { href: "#install", label: "설치" },
+  { href: "#security", label: "보안" },
 ];
 
 export function NavBar() {
@@ -118,7 +118,7 @@ export function NavBar() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-20 border-b transition-colors duration-300 ${
-        solid ? "border-(--ld-border) bg-[rgb(11_15_30/0.82)] backdrop-blur-md" : "border-transparent"
+        solid ? "border-(--ld-border) bg-[rgb(255_255_255/0.82)] backdrop-blur-md" : "border-transparent"
       }`}
     >
       <div className="mx-auto flex h-[68px] max-w-[1200px] items-center gap-8 px-5 lg:px-10">
@@ -209,7 +209,7 @@ export function RunCard() {
     <div
       role="region"
       aria-label="재현 실행 예시"
-      className="ld-in w-full max-w-[440px] justify-self-end rounded-[14px] border border-(--ld-border-strong) bg-[rgb(19_25_51/0.78)] p-5 backdrop-blur-md [transition-delay:.35s]"
+      className="ld-in w-full max-w-[440px] justify-self-end rounded-[14px] border border-(--ld-border-strong) bg-[rgb(255_255_255/0.82)] p-5 shadow-[0_18px_50px_-24px_rgb(11_16_32/0.25)] backdrop-blur-md [transition-delay:.35s]"
     >
       <div className="mb-3.5 flex items-center justify-between font-mono text-[13px] text-(--ld-text-2)">
         <span className="flex items-center gap-2">
@@ -232,7 +232,7 @@ export function RunCard() {
               key={title}
               className={`grid grid-cols-[34px_1fr_auto] items-center gap-2.5 rounded-[10px] px-1.5 py-2 transition duration-400 ${
                 on ? "opacity-100" : "opacity-25"
-              } ${on && verdict ? "bg-[rgb(215_48_63/0.12)]" : i === step ? "bg-[rgb(238_241_247/0.04)]" : ""}`}
+              } ${on && verdict ? "bg-[rgb(215_48_63/0.1)]" : i === step ? "bg-[rgb(11_16_32/0.05)]" : ""}`}
             >
               <span
                 className={`grid size-[34px] place-items-center rounded-[9px] text-[17px] ${
@@ -417,7 +417,7 @@ export function CopySnippet({ code }: { code: string }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-[14px] border border-(--ld-border-strong) bg-[#080B17]">
+    <div className="overflow-hidden rounded-[14px] border border-(--ld-border-strong) bg-(--ld-surface)">
       <div className="flex items-center justify-between border-b border-(--ld-border) py-2.5 pr-3 pl-4 font-mono text-[13px] text-(--ld-text-3)">
         <span>index.html</span>
         <span className="flex items-center">

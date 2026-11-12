@@ -114,7 +114,7 @@ export function Intro() {
         [{ transform: "none" }, { transform: `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(${scale})` }],
         { duration: 700, easing: "cubic-bezier(.7,0,.2,1)", fill: "forwards" },
       );
-      overlay.animate([{ backgroundColor: "rgb(11 15 30 / 1)" }, { backgroundColor: "rgb(11 15 30 / 0)" }], {
+      overlay.animate([{ backgroundColor: "rgb(255 255 255 / 1)" }, { backgroundColor: "rgb(255 255 255 / 0)" }], {
         duration: 700,
         delay: 150,
         fill: "forwards",

@@ -1,26 +1,26 @@
 .ld {
-  --ld-bg: #0b0f1e;
-  --ld-lane-1: #121731;
-  --ld-lane-2: #171d3a;
-  --ld-surface: #131933;
-  --ld-surface-2: #1a2142;
-  --ld-text: #eef1f7;
-  --ld-text-2: #98a0b8;
-  --ld-text-3: #6b7391;
+  --ld-bg: #ffffff;
+  --ld-lane-1: #f2f4f9;
+  --ld-lane-2: #e9edf5;
+  --ld-surface: #f7f8fc;
+  --ld-surface-2: #eef1f7;
+  --ld-text: #0b1020;
+  --ld-text-2: #525a72;
+  --ld-text-3: #868da3;
   --ld-red: #d7303f;
   --ld-red-hover: #e84453;
-  --ld-red-ink: #ff8b95;
-  --ld-red-lane: #8e2a3d;
-  --ld-node: #e7dce3;
-  --ld-ok: #7fd6a4;
-  --ld-border: rgb(238 241 247 / 0.08);
-  --ld-border-strong: rgb(238 241 247 / 0.16);
+  --ld-red-ink: #b22433;
+  --ld-red-lane: #f4ccd1;
+  --ld-node: #2a2533;
+  --ld-ok: #1f9d57;
+  --ld-border: rgb(11 16 32 / 0.1);
+  --ld-border-strong: rgb(11 16 32 / 0.18);
   --ld-ease: cubic-bezier(0.23, 1, 0.32, 1);
   --ld-gap: 120px;
 
   background: var(--ld-bg);
   color: var(--ld-text);
-  color-scheme: dark;
+  color-scheme: light;
   letter-spacing: -0.01em;
   word-break: keep-all;
 }
@@ -33,7 +33,7 @@ html:has(.ld) {
   scroll-behavior: smooth;
 }
 body:has(.ld) {
-  background: #0b0f1e;
+  background: #ffffff;
 }
 .ld :focus-visible {
   outline: 2px solid var(--ld-red-hover);
@@ -90,20 +90,20 @@ body:has(.ld) {
 
 .ld-hero-shade {
   background:
-    linear-gradient(0deg, var(--ld-bg) 0%, rgb(11 15 30 / 0.78) 40%, rgb(11 15 30 / 0.7) 100%);
+    linear-gradient(0deg, var(--ld-bg) 0%, rgb(255 255 255 / 0.78) 40%, rgb(255 255 255 / 0.7) 100%);
 }
 @media (min-width: 1024px) {
   .ld-hero-shade {
     background:
-      linear-gradient(90deg, var(--ld-bg) 0%, rgb(11 15 30 / 0.88) 38%, rgb(11 15 30 / 0.2) 75%, rgb(11 15 30 / 0.5) 100%),
+      linear-gradient(90deg, var(--ld-bg) 0%, rgb(255 255 255 / 0.88) 38%, rgb(255 255 255 / 0.2) 75%, rgb(255 255 255 / 0.5) 100%),
       linear-gradient(0deg, var(--ld-bg) 0%, transparent 28%);
   }
 }
 .ld-band-shade {
-  background: linear-gradient(90deg, rgb(11 15 30 / 0.92) 0%, rgb(11 15 30 / 0.55) 60%, rgb(11 15 30 / 0.75) 100%);
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.92) 0%, rgb(255 255 255 / 0.55) 60%, rgb(255 255 255 / 0.75) 100%);
 }
 .ld-final-shade {
-  background: radial-gradient(ellipse 60% 70% at 50% 50%, rgb(11 15 30 / 0.92), rgb(11 15 30 / 0.35));
+  background: radial-gradient(ellipse 60% 70% at 50% 50%, rgb(255 255 255 / 0.92), rgb(255 255 255 / 0.35));
 }
 
 .ld-bob {
