@@ -1179,11 +1179,6 @@ export interface components {
             root_cause_confirmed: false;
             /** Attempts */
             attempts: components["schemas"]["DiagnosisAttempt"][];
-            /**
-             * Model Failures
-             * @default []
-             */
-            model_failures: components["schemas"]["ModelFailure"][];
             /** Observed Facts */
             observed_facts: components["schemas"]["ObservedFact"][];
             /** Next Actions */
@@ -1272,10 +1267,6 @@ export interface components {
             status: string;
             /** Automatic */
             automatic: boolean;
-            /** Automatic Reason */
-            automatic_reason?: ("auto_fresh" | "provider_retry") | null;
-            /** Run After */
-            run_after?: string | null;
             /** Parent Job Id */
             parent_job_id: string | null;
             /** Baseline Job Id */
@@ -1305,19 +1296,6 @@ export interface components {
             timing: components["schemas"]["EvalTiming"];
             /** Model Calls */
             model_calls: components["schemas"]["EvalModelCall"][];
-            /** Model Calls Source */
-            model_calls_source: ("result" | "model_usage") | null;
-            /**
-             * Model Limit Events
-             * @default []
-             */
-            model_limit_events: components["schemas"]["EvalModelLimitEvent"][];
-            /** Readiness */
-            readiness: {
-                [key: string]: unknown;
-            } | null;
-            /** Critic Config Matches */
-            critic_config_matches: boolean | null;
             /** Conditions */
             conditions: components["schemas"]["EvalCondition"][];
             /** Result Url */
@@ -1339,7 +1317,7 @@ export interface components {
             /** Model */
             model: string | null;
             /** Configured Model */
-            configured_model: string | null;
+            configured_model?: string | null;
             /** Usage Known */
             usage_known: boolean;
             /** Input Tokens */
@@ -1350,27 +1328,6 @@ export interface components {
             latency_ms: number | null;
             /** Retry After Seconds */
             retry_after_seconds: number | null;
-        };
-        /**
-         * EvalModelLimitEvent
-         * @description A model call the engine refused to start for its per-job budget (0.7.0
-         *     `model_limit_events[]`). Not a call: never counted in model_calls or failed calls.
-         */
-        EvalModelLimitEvent: {
-            /** Phase */
-            phase: string | null;
-            /** Role */
-            role: string | null;
-            /** Configured Model */
-            configured_model: string | null;
-            /** Error Code */
-            error_code: string | null;
-            /**
-             * Call Started
-             * @default false
-             * @constant
-             */
-            call_started: false;
         };
         /** EvalRecord */
         EvalRecord: {
@@ -1467,8 +1424,6 @@ export interface components {
             engine_finished_at: string | null;
             /** Persisted At */
             persisted_at: string | null;
-            /** Report Readable At */
-            report_readable_at: string | null;
             /** Queue Wait Ms */
             queue_wait_ms: number | null;
             /** Setup Ms */
@@ -1500,10 +1455,6 @@ export interface components {
             model_calls: number;
             /** Model Calls Usage Unknown */
             model_calls_usage_unknown: number;
-            /** Model Limit Events */
-            model_limit_events: number;
-            /** Readiness Configs */
-            readiness_configs: number;
             /** Browser Attempts */
             browser_attempts: number;
             /** Report Files */
@@ -1710,8 +1661,6 @@ export interface components {
             retry_after_seconds?: number | null;
             /** Retry Available At */
             retry_available_at?: string | null;
-            /** Run After */
-            run_after?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -1833,27 +1782,6 @@ export interface components {
             /** Role */
             role: string;
         };
-        /**
-         * ModelFailure
-         * @description A failed model call or a budget refusal (0.7.0 `diagnosis.model_failures[]`). A refusal
-         *     has `call_started: false`: no call was made, so it is never counted as one.
-         */
-        ModelFailure: {
-            /** Phase */
-            phase: string | null;
-            /** Role */
-            role: string | null;
-            /** Configured Model */
-            configured_model: string | null;
-            /** Model */
-            model: string | null;
-            /** Status */
-            status: string | null;
-            /** Retry After Seconds */
-            retry_after_seconds: number | null;
-            /** Call Started */
-            call_started: boolean | null;
-        };
         /** NextAction */
         NextAction: {
             /** Code */
@@ -1869,8 +1797,7 @@ export interface components {
         };
         /**
          * NextStep
-         * @description The plan step an attempt stopped before. Typed values are never returned. `reload`/`back`
-         *     (browser history, 0.7.0) always have target "".
+         * @description The plan step an attempt stopped before. Typed values are never returned.
          */
         NextStep: {
             /** Action */
@@ -2723,11 +2650,6 @@ export interface components {
             reporting_enabled: boolean;
             /** Screenshot Allowed */
             screenshot_allowed: boolean;
-            /**
-             * Activity Allowed
-             * @default true
-             */
-            activity_allowed: boolean;
             auto_detect: components["schemas"]["AutoDetect"];
             limits: components["schemas"]["WidgetLimits"];
             /** Mask Selectors */

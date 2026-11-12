@@ -3983,14 +3983,6 @@
             "type": "array",
             "title": "Attempts"
           },
-          "model_failures": {
-            "items": {
-              "$ref": "#/components/schemas/ModelFailure"
-            },
-            "type": "array",
-            "title": "Model Failures",
-            "default": []
-          },
           "observed_facts": {
             "items": {
               "$ref": "#/components/schemas/ObservedFact"
@@ -4340,33 +4332,6 @@
             "type": "boolean",
             "title": "Automatic"
           },
-          "automatic_reason": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "auto_fresh",
-                  "provider_retry"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Automatic Reason"
-          },
-          "run_after": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Run After"
-          },
           "parent_job_id": {
             "anyOf": [
               {
@@ -4478,52 +4443,6 @@
             "type": "array",
             "title": "Model Calls"
           },
-          "model_calls_source": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "result",
-                  "model_usage"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Model Calls Source"
-          },
-          "model_limit_events": {
-            "items": {
-              "$ref": "#/components/schemas/EvalModelLimitEvent"
-            },
-            "type": "array",
-            "title": "Model Limit Events",
-            "default": []
-          },
-          "readiness": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Readiness"
-          },
-          "critic_config_matches": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Critic Config Matches"
-          },
           "conditions": {
             "items": {
               "$ref": "#/components/schemas/EvalCondition"
@@ -4560,9 +4479,6 @@
           "plan_review",
           "timing",
           "model_calls",
-          "model_calls_source",
-          "readiness",
-          "critic_config_matches",
           "conditions",
           "result_url",
           "artifacts_url"
@@ -4681,7 +4597,6 @@
           "role",
           "status",
           "model",
-          "configured_model",
           "usage_known",
           "input_tokens",
           "output_tokens",
@@ -4690,69 +4605,6 @@
         ],
         "title": "EvalModelCall",
         "description": "One engine model call, from the stored (redacted) engine result."
-      },
-      "EvalModelLimitEvent": {
-        "properties": {
-          "phase": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phase"
-          },
-          "role": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Role"
-          },
-          "configured_model": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Configured Model"
-          },
-          "error_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Error Code"
-          },
-          "call_started": {
-            "type": "boolean",
-            "const": false,
-            "title": "Call Started",
-            "default": false
-          }
-        },
-        "type": "object",
-        "required": [
-          "phase",
-          "role",
-          "configured_model",
-          "error_code"
-        ],
-        "title": "EvalModelLimitEvent",
-        "description": "A model call the engine refused to start for its per-job budget (0.7.0\n`model_limit_events[]`). Not a call: never counted in model_calls or failed calls."
       },
       "EvalRecord": {
         "properties": {
@@ -5069,18 +4921,6 @@
             ],
             "title": "Persisted At"
           },
-          "report_readable_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Report Readable At"
-          },
           "queue_wait_ms": {
             "anyOf": [
               {
@@ -5177,7 +5017,6 @@
           "engine_started_at",
           "engine_finished_at",
           "persisted_at",
-          "report_readable_at",
           "queue_wait_ms",
           "setup_ms",
           "engine_ms",
@@ -5215,14 +5054,6 @@
             "type": "integer",
             "title": "Model Calls Usage Unknown"
           },
-          "model_limit_events": {
-            "type": "integer",
-            "title": "Model Limit Events"
-          },
-          "readiness_configs": {
-            "type": "integer",
-            "title": "Readiness Configs"
-          },
           "browser_attempts": {
             "type": "integer",
             "title": "Browser Attempts"
@@ -5247,8 +5078,6 @@
           "retests",
           "model_calls",
           "model_calls_usage_unknown",
-          "model_limit_events",
-          "readiness_configs",
           "browser_attempts",
           "report_files",
           "outcomes"
@@ -5814,18 +5643,6 @@
             ],
             "title": "Retry Available At"
           },
-          "run_after": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Run After"
-          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -6177,99 +5994,6 @@
         ],
         "title": "MembershipResponse"
       },
-      "ModelFailure": {
-        "properties": {
-          "phase": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phase"
-          },
-          "role": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Role"
-          },
-          "configured_model": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Configured Model"
-          },
-          "model": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Model"
-          },
-          "status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Status"
-          },
-          "retry_after_seconds": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Retry After Seconds"
-          },
-          "call_started": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Call Started"
-          }
-        },
-        "type": "object",
-        "required": [
-          "phase",
-          "role",
-          "configured_model",
-          "model",
-          "status",
-          "retry_after_seconds",
-          "call_started"
-        ],
-        "title": "ModelFailure",
-        "description": "A failed model call or a budget refusal (0.7.0 `diagnosis.model_failures[]`). A refusal\nhas `call_started: false`: no call was made, so it is never counted as one."
-      },
       "NextAction": {
         "properties": {
           "code": {
@@ -6329,7 +6053,7 @@
           "target"
         ],
         "title": "NextStep",
-        "description": "The plan step an attempt stopped before. Typed values are never returned. `reload`/`back`\n(browser history, 0.7.0) always have target \"\"."
+        "description": "The plan step an attempt stopped before. Typed values are never returned."
       },
       "ObservedFact": {
         "properties": {
@@ -8735,11 +8459,6 @@
           "screenshot_allowed": {
             "type": "boolean",
             "title": "Screenshot Allowed"
-          },
-          "activity_allowed": {
-            "type": "boolean",
-            "title": "Activity Allowed",
-            "default": true
           },
           "auto_detect": {
             "$ref": "#/components/schemas/AutoDetect"
